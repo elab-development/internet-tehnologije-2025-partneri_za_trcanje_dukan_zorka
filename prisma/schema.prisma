@@ -1,0 +1,112 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Uloga {
+  GOST
+  TRKAC
+  ADMIN
+}
+
+enum StatusTrke {
+  PLANIRANA
+  U_TOKU
+  ZAVRSENA
+  OTKAZANA
+}
+
+enum StatusPrijave {
+  NA_CEKANJU
+  PRIHVACENO
+  ODBIJENO
+}
+
+model Korisnik {
+  id                Int           @id @default(autoincrement())
+  imePrezime        String
+  email             String        @unique
+  lozinkaHash       String
+  slikaUrl          String?      
+  ukupnoPredjeniKm  Float         @default(0)
+  uloga             Uloga         @default(TRKAC)
+  createdAt         DateTime      @default(now())
+
+ 
+  organizovaneTrke  Trka[]        @relation("OrganizatorTrke")
+  ucesca            Ucesce[]
+  komentari         Komentar[]
+  obavestenja       Obavestenje[]
+}
+
+model Trka {
+  id                  Int         @id @default(autoincrement())
+  naziv               String
+  vremePocetka        DateTime
+  lokacijaLat         Float
+  lokacijaLng         Float
+  planiranaDistancaKm Float
+  opis                String?
+  status              StatusTrke  @default(PLANIRANA)
+  
+  
+  organizatorId       Int
+  organizator         Korisnik    @relation("OrganizatorTrke", fields: [organizatorId], references: [id])
+
+  
+  ucesnici            Ucesce[]
+  komentari           Komentar[]
+}
+
+model Ucesce {
+  id            Int           @id @default(autoincrement())
+  status        StatusPrijave @default(NA_CEKANJU)
+  
+  korisnikId    Int
+  korisnik      Korisnik      @relation(fields: [korisnikId], references: [id])
+  
+  trkaId        Int
+  trka          Trka          @relation(fields: [trkaId], references: [id])
+  
+  rezultat      Rezultat?     
+
+  @@unique([korisnikId, trkaId]) 
+}
+
+model Rezultat {
+  id            Int      @id @default(autoincrement())
+  predjeniKm    Float
+  vremeTrajanja String  
+  
+  ucesceId      Int      @unique
+  ucesce        Ucesce   @relation(fields: [ucesceId], references: [id])
+}
+
+model Komentar {
+  id        Int      @id @default(autoincrement())
+  tekst     String
+  ocena     Int      
+  createdAt DateTime @default(now())
+
+  autorId   Int
+  autor     Korisnik @relation(fields: [autorId], references: [id])
+  
+  trkaId    Int
+  trka      Trka     @relation(fields: [trkaId], references: [id])
+}
+
+model Obavestenje {
+  id        Int      @id @default(autoincrement())
+  tekst     String
+  procitano Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  korisnikId Int
+  korisnik   Korisnik @relation(fields: [korisnikId], references: [id])
+}
