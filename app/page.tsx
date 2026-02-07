@@ -7,32 +7,30 @@ import Button from './components/Button';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
-// Dinamicko ucitavanje mape
+
 const Map = dynamic(() => import('./components/Map'), { 
   ssr: false,
   loading: () => <div className="h-full w-full bg-gray-200 animate-pulse flex items-center justify-center">Učitavanje mape...</div>
 });
 
 export default function Home() {
-  // STATE
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<{id: number, ime: string} | null>(null);
   const [trke, setTrke] = useState([]); 
   
-  // State za Login Formu
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
 
-  // State za Novu Trku (Forma koja iskace)
   const [showNewRaceForm, setShowNewRaceForm] = useState(false);
   const [newRaceData, setNewRaceData] = useState({
     naziv: '',
     vreme: '',
     distanca: '',
     lat: 0,
-    lng: 0
+    lng: 0,
+    tezina: 'Rekreativno'
   });
 
-  // 1. Ucitavanje korisnika i trka pri startu
   useEffect(() => {
     const checkUser = () => {
       const saved = localStorage.getItem('currentUser');
@@ -45,6 +43,7 @@ export default function Home() {
     };
     checkUser();
   }, []);
+
 
   const fetchTrke = async () => {
     try {
@@ -102,7 +101,7 @@ export default function Home() {
       if (res.ok) {
         alert("Trka uspešno kreirana! 🏁");
         setShowNewRaceForm(false); 
-        setNewRaceData({ naziv: '', vreme: '', distanca: '', lat: 0, lng: 0 }); 
+        setNewRaceData({ naziv: '', vreme: '', distanca: '', lat: 0, lng: 0 , tezina: 'Rekreativno' }); 
         fetchTrke(); 
       } else {
         alert("Greška pri kreiranju trke.");
@@ -113,7 +112,8 @@ export default function Home() {
   return (
     <main className="h-screen flex flex-col overflow-hidden bg-gray-100">
       <div className="z-50 bg-white shadow-md relative">
-        <Navbar /> 
+         <Navbar currentUser={currentUser} /> 
+
       </div>
 
       <div className="flex-1 flex relative h-full">
@@ -140,7 +140,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* MAPA KOMPONENTA */}
           <div className="h-full w-full relative z-0">
             <Map 
               interactive={isLoggedIn} 
@@ -151,13 +150,17 @@ export default function Home() {
 
           {isLoggedIn && (
             <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
-              <div className="bg-white p-2 rounded shadow text-sm font-bold">👤 {currentUser?.ime}</div>
-              <Button label="🚪 Odjavi se" variant="danger" onClick={handleLogout} />
+            <Button 
+                  label={`👤 ${currentUser?.ime}`} 
+                  variant="secondary" 
+                  onClick={() => window.location.href = '/profile'} 
+                />             
+           <Button label="🚪 Odjavi se" variant="danger" onClick={handleLogout} />
             </div>
           )}
 
           {showNewRaceForm && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-[2000] w-80 border border-blue-500">
+            <div className="text-gray-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-[2000] w-80 border border-blue-500">
               <h3 className="font-bold text-lg mb-4 text-center">Nova trka ovde? 📍</h3>
               <div className="space-y-3">
                 <Input 
@@ -175,6 +178,18 @@ export default function Home() {
                   value={newRaceData.distanca} 
                   onChange={(e) => setNewRaceData({...newRaceData, distanca: e.target.value})} 
                 />
+                <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Težina staze</label>
+                <select 
+                  className="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
+                  value={newRaceData.tezina} 
+                  onChange={(e) => setNewRaceData({...newRaceData, tezina: e.target.value})}
+                >
+                  <option value="Početnik">🟢 Početnik (Lagano)</option>
+                  <option value="Rekreativno">🔵 Rekreativno (Srednje)</option>
+                  <option value="Maraton">🔴 Maraton (Teško)</option>
+                </select>
+              </div>
                 <div className="flex gap-2 mt-4">
                   <Button label="Otkaži" variant="secondary" onClick={() => setShowNewRaceForm(false)} />
                   <Button label="Kreiraj" variant="primary" onClick={handleCreateRace} />

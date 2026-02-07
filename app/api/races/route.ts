@@ -26,8 +26,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { naziv, vreme, distanca, lat, lng, organizatorId, opis } = body;
-
+    const { naziv, vreme, distanca, lat, lng, organizatorId, opis, tezina } = body;
    
     if (!naziv || !lat || !lng || !organizatorId) {
       return NextResponse.json({ message: 'Nedostaju podaci.' }, { status: 400 });
@@ -42,6 +41,7 @@ export async function POST(req: Request) {
         lokacijaLng: lng,
         opis: opis || "",
         organizatorId: parseInt(organizatorId),
+        tezina: tezina || "Rekreativno",
         status: 'PLANIRANA'
       }
     });
