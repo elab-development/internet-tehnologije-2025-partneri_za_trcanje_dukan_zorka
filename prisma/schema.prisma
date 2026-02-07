@@ -54,7 +54,7 @@ model Trka {
   planiranaDistancaKm Float
   opis                String?
   status              StatusTrke  @default(PLANIRANA)
-  
+  tezina              String      @default("Rekreativno")
   
   organizatorId       Int
   organizator         Korisnik    @relation("OrganizatorTrke", fields: [organizatorId], references: [id])

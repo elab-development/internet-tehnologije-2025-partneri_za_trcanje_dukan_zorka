@@ -11,7 +11,8 @@ export async function GET() {
       include: {
         organizator: { 
           select: { imePrezime: true, email: true }
-        }
+        },
+         ucesnici: true
       }
     });
 
