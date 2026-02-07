@@ -37,6 +37,7 @@ model Korisnik {
   ukupnoPredjeniKm  Float         @default(0)
   uloga             Uloga         @default(TRKAC)
   createdAt         DateTime      @default(now())
+  bio               String? 
 
  
   organizovaneTrke  Trka[]        @relation("OrganizatorTrke")
@@ -110,3 +111,4 @@ model Obavestenje {
   korisnikId Int
   korisnik   Korisnik @relation(fields: [korisnikId], references: [id])
 }
+
