@@ -9,8 +9,11 @@ export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [bioText, setBioText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchProfile = async () => {
+
     const localUser = localStorage.getItem('currentUser');
     if (!localUser) {
       router.push('/login');
@@ -27,12 +30,30 @@ export default function Profile() {
       });
       const data = await res.json();
       setUser(data);
+      setBioText(data.bio || "");
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleSaveBio = async () => {
+  try {
+    const res = await fetch('/api/profile/update', {
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, bio: bioText })
+    });
+
+    if (res.ok) {
+      alert("Biografija sačuvana!");
+      setIsEditing(false);
+      fetchProfile(); 
+    }
+  } catch (err) { alert("Greška."); }
+};
+
 
   useEffect(() => {
     fetchProfile();
@@ -75,6 +96,36 @@ export default function Profile() {
             </span>
           </div>
         </div>
+
+        <div className="mt-4 pt-4 border-t border-blue-100 w-full">
+  {!isEditing ? (
+    <div>
+      <p className="text-gray-600 italic">
+        {user?.bio || "Nemaš upisanu biografiju."}
+      </p>
+      <button 
+        onClick={() => setIsEditing(true)}
+        className="text-blue-600 text-sm font-semibold mt-2 hover:underline"
+      >
+        ✏️ Izmeni biografiju
+      </button>
+    </div>
+  ) : (
+    <div className="mt-2">
+      <textarea
+        className="w-full p-2 border rounded-md text-sm mb-2"
+        rows={3}
+        value={bioText}
+        onChange={(e) => setBioText(e.target.value)}
+        placeholder="Napiši nešto o sebi..."
+      />
+      <div className="flex gap-2">
+        <Button label="Sačuvaj" onClick={handleSaveBio} variant="primary" />
+        <Button label="Otkaži" onClick={() => setIsEditing(false)} variant="secondary" />
+      </div>
+    </div>
+  )}
+</div>
 
        
         <div className="mb-8">
