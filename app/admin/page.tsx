@@ -1,0 +1,287 @@
+'use client';
+import { useEffect, useMemo, useState } from 'react';
+import Navbar from '../components/Navbar';
+import { useRouter } from 'next/navigation';
+
+type User = {
+  id: number;
+  imePrezime: string;
+  uloga: string;
+};
+
+type Race = {
+  id: number;
+  naziv: string;
+};
+
+type PendingDelete =
+  | { kind: 'user'; id: number; label: string }
+  | { kind: 'race'; id: number; label: string }
+  | null;
+
+export default function AdminPanel() {
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [races, setRaces] = useState<Race[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
+  const [confirmText, setConfirmText] = useState('');
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ ime: string } | null>(null);
+  
+  useEffect(() => {
+    const stored = localStorage.getItem('currentUser');
+    if (!stored) { router.push('/'); return; }
+    
+    const user = JSON.parse(stored);
+    if (user.uloga !== 'ADMIN') {
+      alert("Nemaš pristup ovoj stranici!");
+      router.push('/');
+      return;
+    }
+    
+    setIsAdmin(true);
+    setCurrentUser(user);
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await fetch('/api/admin/data');
+      if (!res.ok) throw new Error('Ne mogu da učitam podatke.');
+      const data = await res.json();
+      setUsers(Array.isArray(data.users) ? data.users : []);
+      setRaces(Array.isArray(data.races) ? data.races : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Greška pri učitavanju.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openDelete = (next: PendingDelete) => {
+    setPendingDelete(next);
+    setConfirmChecked(false);
+    setConfirmText('');
+  };
+
+  const closeDelete = () => {
+    setPendingDelete(null);
+    setConfirmChecked(false);
+    setConfirmText('');
+  };
+
+  const isConfirmReady = useMemo(() => {
+    return confirmChecked && confirmText.trim().toUpperCase() === 'OBRISI';
+  }, [confirmChecked, confirmText]);
+
+  const confirmDelete = async () => {
+    if (!pendingDelete || !isConfirmReady) return;
+    try {
+      if (pendingDelete.kind === 'user') {
+        await fetch('/api/admin/delete-user', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetUserId: pendingDelete.id }),
+        });
+      } else {
+        const stored = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        await fetch('/api/races/delete', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trkaId: pendingDelete.id, userId: stored.id }),
+        });
+      }
+      closeDelete();
+      fetchData();
+    } catch {
+      setError('Brisanje nije uspelo.');
+      closeDelete();
+    }
+  };
+
+  if (!isAdmin) return null;
+
+  return (
+    <main className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+      <Navbar currentUser={currentUser} />
+      <div className="p-8 max-w-6xl mx-auto">
+        <div className="flex items-end justify-between gap-4 mb-8 animate-fade-in">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Admin</p>
+            <h1 className="text-3xl md:text-4xl font-black text-white">Kontrolni Panel</h1>
+            <p className="text-slate-400 mt-2">Upravljanje korisnicima i trkama.</p>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-sm text-slate-300">Prijavljen kao ADMIN</span>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-950/40 px-4 py-3 text-red-200">
+            {error}
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* KORISNICI */}
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 shadow-[0_0_40px_rgba(15,23,42,0.45)] p-6 transition-all duration-300 hover:border-white/20 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(56,189,248,0.15)] animate-fade-in-up">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Korisnici</h2>
+              <span className="text-xs rounded-full bg-white/10 px-3 py-1 text-slate-200 shimmer">
+                {users.length} ukupno
+              </span>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+              {isLoading && (
+                <div className="space-y-3">
+                  <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+                </div>
+              )}
+              {!isLoading && users.map((u) => (
+                <div key={u.id} className="flex items-center justify-between gap-4 border-b border-white/10 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-white/5 hover:translate-x-1">
+                  <span className="text-slate-100">
+                    {u.imePrezime}{' '}
+                    <span className="text-xs text-slate-400">({u.uloga})</span>
+                  </span>
+                  {u.uloga !== 'ADMIN' && (
+                    <button
+                      onClick={() => openDelete({ kind: 'user', id: u.id, label: u.imePrezime })}
+                      className="text-red-300 hover:text-red-200 font-semibold transition"
+                    >
+                      Banuj
+                    </button>
+                  )}
+                </div>
+              ))}
+              {!isLoading && users.length === 0 && (
+                <div className="text-sm text-slate-400">Nema korisnika.</div>
+              )}
+            </div>
+          </div>
+
+          {/* TRKE */}
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 shadow-[0_0_40px_rgba(15,23,42,0.45)] p-6 transition-all duration-300 hover:border-white/20 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(244,63,94,0.15)] animate-fade-in-up delay-150">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Trke</h2>
+              <span className="text-xs rounded-full bg-white/10 px-3 py-1 text-slate-200 shimmer">
+                {races.length} ukupno
+              </span>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+              {isLoading && (
+                <div className="space-y-3">
+                  <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+                </div>
+              )}
+              {!isLoading && races.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-4 border-b border-white/10 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-white/5 hover:translate-x-1">
+                  <span className="text-slate-100">{r.naziv}</span>
+                  <button
+                    onClick={() => openDelete({ kind: 'race', id: r.id, label: r.naziv })}
+                    className="text-red-300 hover:text-red-200 font-semibold transition"
+                  >
+                    Obriši
+                  </button>
+                </div>
+              ))}
+              {!isLoading && races.length === 0 && (
+                <div className="text-sm text-slate-400">Nema trka.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {pendingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur p-6 shadow-2xl animate-pop-in">
+            <h3 className="text-lg font-bold text-white">Potvrda brisanja</h3>
+            <p className="text-sm text-slate-300 mt-2">
+              {pendingDelete.kind === 'user'
+                ? `Brišeš korisnika: ${pendingDelete.label}.`
+                : `Brišeš trku: ${pendingDelete.label}.`}
+            </p>
+            <div className="mt-4 space-y-3">
+              <label className="flex items-center gap-2 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  className="accent-red-500"
+                  checked={confirmChecked}
+                  onChange={(e) => setConfirmChecked(e.target.checked)}
+                />
+                Razumem da je ovo nepovratna akcija.
+              </label>
+              <div>
+                <label className="text-xs text-slate-400">Upiši `OBRISI` da potvrdiš</label>
+                <input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-red-400"
+                  placeholder="OBRISI"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                onClick={closeDelete}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:border-white/30"
+              >
+                Odustani
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={!isConfirmReady}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-500"
+              >
+                Obriši
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pop-in {
+          0% { opacity: 0; transform: scale(0.96); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in { animation: fade-in 0.6s ease both; }
+        .animate-fade-in-up { animation: fade-in-up 0.7s ease both; }
+        .delay-150 { animation-delay: 150ms; }
+        .animate-pop-in { animation: pop-in 0.25s ease both; }
+        .shimmer {
+          position: relative;
+          overflow: hidden;
+        }
+        .shimmer::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+          animation: shimmer 2.2s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+          to { transform: translateX(100%); }
+        }
+      `}</style>
+    </main>
+  );
+}

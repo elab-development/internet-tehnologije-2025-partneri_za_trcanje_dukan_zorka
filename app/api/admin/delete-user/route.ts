@@ -1,0 +1,69 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function DELETE(req: Request) {
+  try {
+    const { targetUserId } = await req.json();
+    const id = parseInt(targetUserId);
+
+    if (isNaN(id)) {
+      return NextResponse.json({ message: 'Nevalidan ID korisnika.' }, { status: 400 });
+    }
+
+    const trkeKorisnika = await prisma.trka.findMany({
+      where: { organizatorId: id },
+      select: { id: true }
+    });
+    const trkeIds = trkeKorisnika.map(t => t.id);
+
+   
+    const ucescaIds = await prisma.ucesce.findMany({
+      where: {
+        OR: [
+          { korisnikId: id },
+          { trkaId: { in: trkeIds } }
+        ]
+      },
+      select: { id: true }
+    });
+    const idsZaBrisanjeRezultata = ucescaIds.map(u => u.id);
+
+    await prisma.$transaction([
+      
+      prisma.rezultat.deleteMany({
+        where: { ucesceId: { in: idsZaBrisanjeRezultata } }
+      }),
+
+      
+      prisma.komentar.deleteMany({
+        where: {
+          OR: [
+            { autorId: id },
+            { trkaId: { in: trkeIds } }
+          ]
+        }
+      }),
+
+     
+      prisma.ucesce.deleteMany({
+        where: {
+          OR: [
+            { korisnikId: id },
+            { trkaId: { in: trkeIds } }
+          ]
+        }
+      }),
+
+      prisma.obavestenje.deleteMany({ where: { korisnikId: id } }),
+
+      prisma.trka.deleteMany({ where: { organizatorId: id } }),
+
+      prisma.korisnik.delete({ where: { id: id } })
+    ]);
+
+    return NextResponse.json({ message: 'Korisnik i apsolutno svi povezani podaci obrisani.' });
+  } catch (error: any) {
+    console.error("DETALJNA GREŠKA U TERMINALU:", error);
+    return NextResponse.json({ message: 'Greška pri brisanju: ' + error.message }, { status: 500 });
+  }
+}
