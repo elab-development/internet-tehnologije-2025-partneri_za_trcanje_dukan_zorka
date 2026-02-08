@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
@@ -30,15 +31,28 @@ export async function POST(req: Request) {
     }
 
     // moguce dodavanje JWT tokena kasnije
-    return NextResponse.json({ 
+    const payload = {
+      id: korisnik.id,
+      email: korisnik.email,
+      ime: korisnik.imePrezime,
+      uloga: korisnik.uloga
+    };
+
+    const token = signToken(payload);
+    const res = NextResponse.json({ 
       message: 'Uspešna prijava!',
-      user: {
-        id: korisnik.id,
-        email: korisnik.email,
-        ime: korisnik.imePrezime,
-        uloga: korisnik.uloga
-      }
+      user: payload
     }, { status: 200 });
+
+    res.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
+
+    return res;
 
   } catch (error) {
     console.error('Login greška:', error);

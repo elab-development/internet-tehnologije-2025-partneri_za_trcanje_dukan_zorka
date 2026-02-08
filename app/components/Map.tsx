@@ -126,6 +126,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       zoomControl={true}
       scrollWheelZoom={true}
       doubleClickZoom={true}
+      className="map-root"
     >
       <TileLayer
         attribution='&copy; OpenStreetMap contributors'
@@ -134,7 +135,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       
       <MapRevalidator interactive={interactive} />
       
-      {interactive && <MapEvents onMapClick={onMapClick} />}
+      {interactive && !profileOpen && <MapEvents onMapClick={onMapClick} />}
 
       {draftLocation && (
         <Marker position={[draftLocation.lat, draftLocation.lng]} icon={draftIcon}>
@@ -189,14 +190,33 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       {profileOpen && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 pointer-events-auto"
-          onClick={() => setProfileOpen(false)}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setProfileOpen(false);
+          }}
         >
           <div
             className="w-full max-w-sm rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl p-6 shadow-2xl text-gray-700 relative"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
             <button
-              onClick={() => setProfileOpen(false)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setProfileOpen(false);
+              }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
               aria-label="Zatvori"
             >

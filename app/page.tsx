@@ -178,6 +178,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
     localStorage.removeItem('currentUser');
     window.location.reload();
   };
