@@ -51,7 +51,7 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen dark:bg-slate-700 bg-gray-50">
+    <main className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
       <Navbar />
 
       <div className="max-w-md mx-auto mt-40 p-8 bg-white rounded-xl shadow-lg border border-gray-100 ">

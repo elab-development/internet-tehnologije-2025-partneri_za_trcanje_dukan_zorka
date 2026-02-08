@@ -4,14 +4,24 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
+import markerIcon from '../images/icon.png';
 
+const markerIconUrl = typeof markerIcon === 'string' ? markerIcon : markerIcon.src;
 
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+const raceIcon = L.icon({
+  iconUrl: markerIconUrl,
+  iconSize: [104, 58],
+  iconAnchor: [42, 46],
+  popupAnchor: [0, -46],
+  className: 'race-marker',
+});
+
+const draftIcon = L.icon({
+  iconUrl: markerIconUrl,
+  iconSize: [104, 58],
+  iconAnchor: [52, 58],
+  popupAnchor: [0, -58],
+  className: 'draft-marker',
 });
 
 function MapRevalidator({ interactive }: { interactive: boolean }) {
@@ -42,23 +52,15 @@ interface MapProps {
   trke?: any[];
   onMapClick?: (lat: number, lng: number) => void;
   interactive?: boolean;
+  draftLocation?: { lat: number; lng: number } | null;
 }
 
-export default function Map({ trke = [], onMapClick, interactive = true }: MapProps) {
+export default function Map({ trke = [], onMapClick, interactive = true, draftLocation }: MapProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) setCurrentUser(JSON.parse(user));
-    
-   
-    // @ts-ignore
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-    });
   }, []);
 
   
@@ -73,7 +75,7 @@ export default function Map({ trke = [], onMapClick, interactive = true }: MapPr
       });
 
       if (res.ok) {
-        alert("Uspešno si se pridružio trci! 🏃‍♂️");
+        alert("Zahtev je poslat! Organizator treba da potvrdi.");
         window.location.reload();
       } else {
         const data = await res.json();
@@ -101,10 +103,20 @@ export default function Map({ trke = [], onMapClick, interactive = true }: MapPr
       
       {interactive && <MapEvents onMapClick={onMapClick} />}
 
-      {trke.map((trka) => (
-        <Marker key={trka.id} position={[trka.lokacijaLat, trka.lokacijaLng]} icon={icon}>
+      {draftLocation && (
+        <Marker position={[draftLocation.lat, draftLocation.lng]} icon={draftIcon}>
           <Popup>
-            <div className="text-center min-w-[150px]">
+            <div className="text-center text-sm text-gray-700">
+              📍 Nova trka ovde
+            </div>
+          </Popup>
+        </Marker>
+      )}
+
+      {trke.map((trka) => (
+        <Marker key={trka.id} position={[trka.lokacijaLat, trka.lokacijaLng]} icon={raceIcon}>
+          <Popup>
+            <div className="text-center min-w-150px glass-popup">
               <h3 className="font-bold text-lg text-blue-600">{trka.naziv}</h3>
               <div className="text-sm text-gray-600 my-2">
                 <p>📅 {new Date(trka.vremePocetka).toLocaleDateString()} u {new Date(trka.vremePocetka).toLocaleTimeString().slice(0,5)}h</p>
@@ -126,6 +138,26 @@ export default function Map({ trke = [], onMapClick, interactive = true }: MapPr
           </Popup>
         </Marker>
       ))}
+      <style jsx global>{`
+        .leaflet-popup-content-wrapper {
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(16px);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+          border-radius: 16px;
+        }
+        .leaflet-popup-tip {
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(16px);
+        }
+        .leaflet-popup-content {
+          margin: 12px 14px;
+        }
+        .glass-popup {
+          text-align: center;
+        }
+      `}</style>
     </MapContainer>
   );
 }
