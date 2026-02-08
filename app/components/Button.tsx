@@ -7,6 +7,7 @@ interface ButtonProps {
   type?: "button" | "submit" | "reset"; 
   variant?: "primary" | "secondary" | "danger"; 
   fullWidth?: boolean;  
+  disabled?: boolean;
 }
 
 export default function Button({ 
@@ -14,7 +15,8 @@ export default function Button({
   onClick, 
   type = "button", 
   variant = "primary", 
-  fullWidth = false 
+  fullWidth = false,
+  disabled = false
 }: ButtonProps) {
   
   
@@ -30,7 +32,8 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      className={`${baseStyles} ${variants[variant]} ${fullWidth ? 'w-full' : ''}`}
+      disabled={disabled}
+      className={`${baseStyles} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {label}
     </button>

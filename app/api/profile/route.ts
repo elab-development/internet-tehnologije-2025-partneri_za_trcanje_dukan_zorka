@@ -13,10 +13,14 @@ export async function POST(req: Request) {
           include: {
             trka: { 
                include: { organizator: true }
-            }
+            },
+            rezultat: true
           }
         },
         organizovaneTrke: true,
+        komentari: {
+          select: { id: true, trkaId: true, tekst: true, ocena: true, createdAt: true }
+        },
         obavestenja: {
           orderBy: { createdAt: 'desc' }
         }

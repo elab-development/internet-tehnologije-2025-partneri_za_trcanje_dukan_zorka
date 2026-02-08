@@ -57,11 +57,44 @@ interface MapProps {
 
 export default function Map({ trke = [], onMapClick, interactive = true, draftLocation }: MapProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) setCurrentUser(JSON.parse(user));
   }, []);
+
+  const openProfile = async (userId?: number | string | null) => {
+    const numericId = typeof userId === 'string' ? parseInt(userId) : userId ?? null;
+    if (!numericId || Number.isNaN(numericId)) {
+      setProfileOpen(true);
+      setProfileLoading(false);
+      setProfileError('Neispravan ID korisnika.');
+      setProfileData(null);
+      return;
+    }
+    try {
+      setProfileOpen(true);
+      setProfileLoading(true);
+      setProfileError(null);
+      const res = await fetch(`/api/users/${numericId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setProfileError(data.message || 'Greška pri učitavanju profila.');
+        setProfileData(null);
+      } else {
+        setProfileData(data);
+      }
+    } catch {
+      setProfileError('Greška pri učitavanju profila.');
+      setProfileData(null);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   
   const handleJoin = async (trkaId: number) => {
@@ -113,7 +146,9 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         </Marker>
       )}
 
-      {trke.map((trka) => (
+      {trke.map((trka) => {
+        const isPast = new Date(trka.vremePocetka) < new Date();
+        return (
         <Marker key={trka.id} position={[trka.lokacijaLat, trka.lokacijaLng]} icon={raceIcon}>
           <Popup>
             <div className="text-center min-w-150px glass-popup">
@@ -121,7 +156,15 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
               <div className="text-sm text-gray-600 my-2">
                 <p>📅 {new Date(trka.vremePocetka).toLocaleDateString()} u {new Date(trka.vremePocetka).toLocaleTimeString().slice(0,5)}h</p>
                 <p>📏 Distanca: {trka.planiranaDistancaKm} km</p>
-                <p>👤 Org: {trka.organizator?.imePrezime}</p>
+                <p>
+                  👤 Org:{' '}
+                  <button
+                    onClick={() => openProfile(trka.organizator?.id ?? trka.organizatorId)}
+                    className="text-blue-600 hover:underline font-semibold"
+                  >
+                    {trka.organizator?.imePrezime || 'Nepoznato'}
+                  </button>
+                </p>
                 
                 <p className="font-semibold mt-1">
                   Prijavljeno: {trka.ucesnici ? trka.ucesnici.length : 0}
@@ -129,15 +172,84 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
               </div>
 
               <button 
-                onClick={() => handleJoin(trka.id)}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold transition w-full mt-1"
+                onClick={() => !isPast && handleJoin(trka.id)}
+                disabled={isPast}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition w-full mt-1 ${
+                  isPast
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
               >
-                Pridruži se +
+                {isPast ? 'Trka završena' : 'Pridruži se +'}
               </button>
             </div>
           </Popup>
         </Marker>
-      ))}
+      )})}
+      {profileOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 pointer-events-auto"
+          onClick={() => setProfileOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl p-6 shadow-2xl text-gray-700 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setProfileOpen(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              aria-label="Zatvori"
+            >
+              ✕
+            </button>
+
+            {profileLoading && (
+              <div className="space-y-3">
+                <div className="h-12 w-12 rounded-full bg-gray-200 animate-pulse" />
+                <div className="h-4 w-2/3 bg-gray-200 animate-pulse rounded" />
+                <div className="h-3 w-full bg-gray-200 animate-pulse rounded" />
+              </div>
+            )}
+
+            {!profileLoading && profileError && (
+              <div className="text-sm text-red-600">{profileError}</div>
+            )}
+
+            {!profileLoading && profileData && (
+              <div className="flex flex-col items-center text-center gap-3">
+                {profileData.slikaUrl ? (
+                  <img
+                    src={profileData.slikaUrl}
+                    alt={profileData.imePrezime}
+                    className="h-16 w-16 rounded-full object-cover border border-white/80 shadow"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl">
+                    👤
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-lg font-bold">{profileData.imePrezime}</h3>
+                  <p className="text-xs text-gray-500">{profileData.uloga}</p>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {profileData.bio || 'Korisnik nema biografiju.'}
+                </p>
+                <div className="w-full grid grid-cols-2 gap-3">
+                  <div className="rounded-lg bg-white/70 border border-white/80 py-2">
+                    <p className="text-xs text-gray-500">Organizuje</p>
+                    <p className="font-bold">{profileData.organizovaneTrkeCount}</p>
+                  </div>
+                  <div className="rounded-lg bg-white/70 border border-white/80 py-2">
+                    <p className="text-xs text-gray-500">Ukupno km</p>
+                    <p className="font-bold">{profileData.ukupnoPredjeniKm ?? 0}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <style jsx global>{`
         .leaflet-popup-content-wrapper {
           background: rgba(255, 255, 255, 0.78);

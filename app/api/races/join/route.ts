@@ -29,6 +29,9 @@ export async function POST(req: Request) {
     if (!trka) {
       return NextResponse.json({ message: 'Trka ne postoji.' }, { status: 404 });
     }
+    if (new Date(trka.vremePocetka) < new Date()) {
+      return NextResponse.json({ message: 'Prijave za ovu trku su zatvorene.' }, { status: 400 });
+    }
 
     const korisnik = await prisma.korisnik.findUnique({
       where: { id: parseInt(korisnikId) }

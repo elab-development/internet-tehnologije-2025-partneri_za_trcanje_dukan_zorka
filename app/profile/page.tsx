@@ -12,6 +12,12 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [bioText, setBioText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [resultFormOpen, setResultFormOpen] = useState<number | null>(null);
+  const [resultData, setResultData] = useState({ predjeniKm: '', vremeTrajanja: '' });
+  const [resultError, setResultError] = useState<string | null>(null);
+  const [commentFormOpen, setCommentFormOpen] = useState<number | null>(null);
+  const [commentData, setCommentData] = useState({ ocena: '5', tekst: '' });
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   const fetchProfile = async () => {
 
@@ -105,6 +111,103 @@ export default function Profile() {
   }
 };
 
+  const parseDurationToSeconds = (value: string) => {
+    const parts = value.split(':').map((p) => parseInt(p, 10));
+    if (parts.some((p) => Number.isNaN(p))) return null;
+    if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    }
+    if (parts.length === 1) {
+      return parts[0] * 60;
+    }
+    return null;
+  };
+
+  const formatPace = (km: number, vremeTrajanja: string) => {
+    const total = parseDurationToSeconds(vremeTrajanja);
+    if (!total || km <= 0) return '-';
+    const secPerKm = Math.round(total / km);
+    const minutes = Math.floor(secPerKm / 60);
+    const seconds = secPerKm % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')} min/km`;
+  };
+
+  const openResultForm = (ucesceId: number) => {
+    setResultFormOpen(ucesceId);
+    setResultData({ predjeniKm: '', vremeTrajanja: '' });
+    setResultError(null);
+  };
+
+  const handleSaveResult = async (ucesceId: number) => {
+    try {
+      setResultError(null);
+      if (!resultData.predjeniKm || !resultData.vremeTrajanja) {
+        setResultError('Unesi km i vreme.');
+        return;
+      }
+
+      const res = await fetch('/api/results', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ucesceId,
+          korisnikId: user.id,
+          predjeniKm: resultData.predjeniKm,
+          vremeTrajanja: resultData.vremeTrajanja
+        })
+      });
+
+      if (res.ok) {
+        setResultFormOpen(null);
+        fetchProfile();
+      } else {
+        const data = await res.json();
+        setResultError(data.message || 'Greška pri snimanju.');
+      }
+    } catch (err) {
+      setResultError('Greška na mreži.');
+    }
+  };
+
+  const openCommentForm = (trkaId: number) => {
+    setCommentFormOpen(trkaId);
+    setCommentData({ ocena: '5', tekst: '' });
+    setCommentError(null);
+  };
+
+  const handleSaveComment = async (trkaId: number) => {
+    try {
+      setCommentError(null);
+      if (!commentData.tekst || !commentData.ocena) {
+        setCommentError('Unesi komentar i ocenu.');
+        return;
+      }
+
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trkaId,
+          autorId: user.id,
+          tekst: commentData.tekst,
+          ocena: commentData.ocena
+        })
+      });
+
+      if (res.ok) {
+        setCommentFormOpen(null);
+        fetchProfile();
+      } else {
+        const data = await res.json();
+        setCommentError(data.message || 'Greška pri slanju komentara.');
+      }
+    } catch (err) {
+      setCommentError('Greška na mreži.');
+    }
+  };
   const handleApproveRequest = async (ucesceId: number) => {
     try {
       const res = await fetch('/api/races/requests/approve', {
@@ -160,6 +263,9 @@ export default function Profile() {
             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-2 inline-block">
               {user?.uloga}
             </span>
+            <div className="mt-2 text-sm text-gray-600">
+              Ukupno km: <span className="font-semibold">{user?.ukupnoPredjeniKm ?? 0}</span>
+            </div>
           </div>
           {user?.uloga === 'ADMIN' && (
             <div className="absolute top-4 right-4">
@@ -260,22 +366,127 @@ export default function Profile() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {user?.ucesca.map((ucesce: any) => (
-                <div key={ucesce.id} className="bg-white text-gray-500 p-5 rounded-lg shadow border border-gray-100 flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-lg">{ucesce.trka.naziv}</h3>
-                    <p className="text-sm text-gray-600">
-                      📅 {new Date(ucesce.trka.vremePocetka).toLocaleDateString()}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      📍 {ucesce.trka.planiranaDistancaKm} km
-                    </p>
+                <div key={ucesce.id} className="bg-white text-gray-500 p-5 rounded-lg shadow border border-gray-100 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-lg">{ucesce.trka.naziv}</h3>
+                      <p className="text-sm text-gray-600">
+                        📅 {new Date(ucesce.trka.vremePocetka).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        📍 {ucesce.trka.planiranaDistancaKm} km
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">Status: {ucesce.status}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleLeave(ucesce.trka.id)}
+                      className="text-red-500 text-sm hover:underline font-medium"
+                    >
+                      Otkaži
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => handleLeave(ucesce.trka.id)}
-                    className="text-red-500 text-sm hover:underline font-medium"
-                  >
-                    Otkaži
-                  </button>
+
+                  {ucesce.rezultat && (
+                    <div className="bg-blue-50/70 border border-blue-100 rounded-lg p-3 text-sm text-gray-700">
+                      <div>✅ Rezultat: {ucesce.rezultat.predjeniKm} km</div>
+                      <div>⏱ Vreme: {ucesce.rezultat.vremeTrajanja}</div>
+                      <div>⚡ Tempo: {formatPace(ucesce.rezultat.predjeniKm, ucesce.rezultat.vremeTrajanja)}</div>
+                    </div>
+                  )}
+
+                  {ucesce.status === 'PRIHVACENO' &&
+                    !ucesce.rezultat &&
+                    new Date(ucesce.trka.vremePocetka) < new Date() && (
+                    <div>
+                      {resultFormOpen === ucesce.id ? (
+                        <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-3">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                              placeholder="Pređeno km"
+                              value={resultData.predjeniKm}
+                              onChange={(e) => setResultData({ ...resultData, predjeniKm: e.target.value })}
+                            />
+                            <input
+                              className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                              placeholder="Vreme (HH:MM:SS)"
+                              value={resultData.vremeTrajanja}
+                              onChange={(e) => setResultData({ ...resultData, vremeTrajanja: e.target.value })}
+                            />
+                          </div>
+                          {resultError && (
+                            <div className="text-xs text-red-600 mt-2">{resultError}</div>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Button label="Sačuvaj" variant="primary" onClick={() => handleSaveResult(ucesce.id)} />
+                            <Button label="Otkaži" variant="secondary" onClick={() => setResultFormOpen(null)} />
+                          </div>
+                        </div>
+                      ) : (
+                        <Button label="Unesi rezultat" variant="secondary" onClick={() => openResultForm(ucesce.id)} />
+                      )}
+                    </div>
+                  )}
+
+                  {ucesce.status === 'PRIHVACENO' &&
+                    !ucesce.rezultat &&
+                    new Date(ucesce.trka.vremePocetka) >= new Date() && (
+                    <Button label="Rezultat nakon trke" variant="secondary" disabled />
+                  )}
+
+                  {(() => {
+                    const hasComment = user?.komentari?.some((k: any) => k.trkaId === ucesce.trka.id);
+                    const isPast = new Date(ucesce.trka.vremePocetka) < new Date();
+
+                    if (ucesce.status !== 'PRIHVACENO' || !isPast) return null;
+
+                    if (hasComment) {
+                      const komentar = user?.komentari?.find((k: any) => k.trkaId === ucesce.trka.id);
+                      return (
+                        <div className="bg-green-50/70 border border-green-100 rounded-lg p-3 text-sm text-gray-700">
+                          <div>💬 Tvoj komentar: {komentar?.tekst}</div>
+                          <div>⭐ Ocena: {komentar?.ocena}/5</div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div>
+                        {commentFormOpen === ucesce.trka.id ? (
+                          <div className="rounded-lg border border-green-100 bg-green-50/70 p-3">
+                            <div className="grid grid-cols-2 gap-2">
+                              <select
+                                className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                                value={commentData.ocena}
+                                onChange={(e) => setCommentData({ ...commentData, ocena: e.target.value })}
+                              >
+                                <option value="5">5 - Odlično</option>
+                                <option value="4">4 - Vrlo dobro</option>
+                                <option value="3">3 - Dobro</option>
+                                <option value="2">2 - Loše</option>
+                                <option value="1">1 - Jako loše</option>
+                              </select>
+                              <input
+                                className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                                placeholder="Komentar"
+                                value={commentData.tekst}
+                                onChange={(e) => setCommentData({ ...commentData, tekst: e.target.value })}
+                              />
+                            </div>
+                            {commentError && (
+                              <div className="text-xs text-red-600 mt-2">{commentError}</div>
+                            )}
+                            <div className="flex gap-2 mt-3">
+                              <Button label="Sačuvaj komentar" variant="primary" onClick={() => handleSaveComment(ucesce.trka.id)} />
+                              <Button label="Otkaži" variant="secondary" onClick={() => setCommentFormOpen(null)} />
+                            </div>
+                          </div>
+                        ) : (
+                          <Button label="Ostavi komentar" variant="secondary" onClick={() => openCommentForm(ucesce.trka.id)} />
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>

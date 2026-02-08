@@ -8,11 +8,20 @@ export async function GET() {
       where: {
         status: 'PLANIRANA' 
       },
-      include: {
-        organizator: { 
-          select: { imePrezime: true, email: true }
+      select: {
+        id: true,
+        naziv: true,
+        vremePocetka: true,
+        lokacijaLat: true,
+        lokacijaLng: true,
+        planiranaDistancaKm: true,
+        organizatorId: true,
+        tezina: true,
+        status: true,
+        organizator: {
+          select: { id: true, imePrezime: true, email: true, slikaUrl: true, bio: true }
         },
-         ucesnici: true
+        ucesnici: { select: { id: true } }
       }
     });
 
