@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Pogrešan email ili lozinka.' }, { status: 401 });
     }
 
-    // moguce dodavanje JWT tokena kasnije
+    // moguce dodavanje JWT tokena kasnije  - DODAT
     const payload = {
       id: korisnik.id,
       email: korisnik.email,

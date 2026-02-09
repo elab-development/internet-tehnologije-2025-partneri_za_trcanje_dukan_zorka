@@ -65,7 +65,7 @@ export default function About() {
                 </div>
                 <div className="glass-mini">
                   <p className="text-xs text-slate-500">Organizatori</p>
-                  <p className="text-xl font-bold">2</p>
+                  <p className="text-4xl font-bold">∞</p>
                 </div>
               </div>
             </div>

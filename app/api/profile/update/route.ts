@@ -5,7 +5,7 @@ import { getAuthPayloadFromCookies } from '@/lib/auth';
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { bio } = body;
+    const { bio, slikaUrl } = body;
 
     const auth = await getAuthPayloadFromCookies();
     if (!auth) {
@@ -13,11 +13,13 @@ export async function PUT(req: Request) {
     }
 
     
+    const data: { bio?: string | null; slikaUrl?: string | null } = {};
+    if (bio !== undefined) data.bio = bio;
+    if (slikaUrl !== undefined) data.slikaUrl = slikaUrl;
+
     const azuriranKorisnik = await prisma.korisnik.update({
       where: { id: auth.id },
-      data: {
-        bio: bio 
-      }
+      data
     });
 
     return NextResponse.json({ message: 'Profil ažuriran!', user: azuriranKorisnik }, { status: 200 });

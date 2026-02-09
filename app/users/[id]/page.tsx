@@ -1,0 +1,203 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Navbar from '../../components/Navbar';
+
+type PublicUser = {
+  id: number;
+  imePrezime: string;
+  bio?: string | null;
+  slikaUrl?: string | null;
+  uloga: string;
+  ukupnoPredjeniKm: number;
+  organizovaneTrkeCount: number;
+  organizovaneTrke: {
+    id: number;
+    naziv: string;
+    vremePocetka: string;
+    planiranaDistancaKm: number;
+  }[];
+  avgOcena: number | null;
+  brojOcena: number;
+  komentari: {
+    id: number;
+    tekst: string;
+    ocena: number;
+    createdAt: string;
+    autor: { imePrezime: string };
+    trka: { naziv: string };
+  }[];
+};
+
+export default function PublicProfile() {
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const [currentUser, setCurrentUser] = useState<{ ime: string } | null>(null);
+  const [data, setData] = useState<PublicUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const me = await fetch('/api/auth/me', { credentials: 'include' });
+        if (me.ok) {
+          const user = await me.json();
+          setCurrentUser(user);
+        }
+      } catch {
+        // noop
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch(`/api/users/${id}`);
+        const json = await res.json();
+        if (!res.ok) {
+          setError(json.message || 'Greška pri učitavanju profila.');
+          setData(null);
+        } else {
+          setData(json);
+        }
+      } catch {
+        setError('Greška pri učitavanju profila.');
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, [id]);
+
+  return (
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900">
+      <Navbar currentUser={currentUser} />
+
+      <div className="max-w-5xl mx-auto p-6 md:p-10">
+        {loading && (
+          <div className="rounded-2xl bg-white/70 border border-white/80 p-6 shadow">
+            Učitavanje profila...
+          </div>
+        )}
+        {error && (
+          <div className="rounded-2xl bg-red-50 border border-red-200 p-6 text-red-600 shadow">
+            {error}
+          </div>
+        )}
+
+        {!loading && data && (
+          <>
+            <section className="glass-card flex flex-col md:flex-row gap-6 items-center">
+              {data.slikaUrl ? (
+                <img
+                  src={data.slikaUrl}
+                  alt={data.imePrezime}
+                  className="h-24 w-24 rounded-full object-cover border border-white/80 shadow"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl">
+                  👤
+                </div>
+              )}
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-black">{data.imePrezime}</h1>
+                <p className="text-sm text-slate-500 mt-1">{data.uloga}</p>
+                <p className="text-slate-600 mt-3">
+                  {data.bio || 'Korisnik nema biografiju.'}
+                </p>
+              </div>
+              <div className="ml-auto grid grid-cols-2 gap-3 w-full md:w-auto">
+                <div className="glass-mini text-center">
+                  <p className="text-xs text-slate-500">Ukupno km</p>
+                  <p className="text-lg font-bold">{data.ukupnoPredjeniKm ?? 0}</p>
+                </div>
+                <div className="glass-mini text-center">
+                  <p className="text-xs text-slate-500">Organizuje</p>
+                  <p className="text-lg font-bold">{data.organizovaneTrkeCount}</p>
+                </div>
+                <div className="glass-mini text-center">
+                  <p className="text-xs text-slate-500">Ocena</p>
+                  <p className="text-lg font-bold">
+                    {data.avgOcena ? data.avgOcena.toFixed(1) : '-'}
+                  </p>
+                </div>
+                <div className="glass-mini text-center">
+                  <p className="text-xs text-slate-500">Broj ocena</p>
+                  <p className="text-lg font-bold">{data.brojOcena}</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-8 grid gap-6 md:grid-cols-2">
+              <div className="glass-card">
+                <h2 className="text-lg font-bold">Poslednje organizovane trke</h2>
+                {data.organizovaneTrke.length === 0 ? (
+                  <p className="text-sm text-slate-500 mt-3">Nema organizovanih trka.</p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {data.organizovaneTrke.map((t) => (
+                      <div key={t.id} className="rounded-lg bg-white/70 border border-white/80 p-3">
+                        <p className="font-semibold">{t.naziv}</p>
+                        <p className="text-xs text-slate-500">
+                          📅 {new Date(t.vremePocetka).toLocaleDateString()} • 📏 {t.planiranaDistancaKm} km
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="glass-card">
+                <h2 className="text-lg font-bold">Komentari o trkama</h2>
+                {data.komentari.length === 0 ? (
+                  <p className="text-sm text-slate-500 mt-3">Nema komentara.</p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {data.komentari.map((k) => (
+                      <div key={k.id} className="rounded-lg bg-white/70 border border-white/80 p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold">{k.autor.imePrezime}</p>
+                          <span className="text-xs text-slate-500">⭐ {k.ocena}/5</span>
+                        </div>
+                        <p className="text-xs text-slate-500">Trka: {k.trka.naziv}</p>
+                        <p className="text-sm text-slate-700 mt-2">{k.tekst}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+
+      <style jsx global>{`
+        .glass-card {
+          background: rgba(255, 255, 255, 0.65);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(18px);
+          border-radius: 20px;
+          padding: 24px;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+        }
+        .glass-mini {
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(12px);
+          border-radius: 14px;
+          padding: 10px 12px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+      `}</style>
+    </main>
+  );
+}
