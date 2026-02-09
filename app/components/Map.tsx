@@ -53,19 +53,15 @@ interface MapProps {
   onMapClick?: (lat: number, lng: number) => void;
   interactive?: boolean;
   draftLocation?: { lat: number; lng: number } | null;
+  currentUser?: { id: number } | null;
 }
 
-export default function Map({ trke = [], onMapClick, interactive = true, draftLocation }: MapProps) {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+export default function Map({ trke = [], onMapClick, interactive = true, draftLocation, currentUser }: MapProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) setCurrentUser(JSON.parse(user));
-  }, []);
 
   const openProfile = async (userId?: number | string | null) => {
     const numericId = typeof userId === 'string' ? parseInt(userId) : userId ?? null;
@@ -104,7 +100,8 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       const res = await fetch('/api/races/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trkaId, korisnikId: currentUser.id })
+        body: JSON.stringify({ trkaId }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -189,7 +186,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       )})}
       {profileOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 pointer-events-auto"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40 p-4 pointer-events-auto"
           onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();

@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { ucesceId, korisnikId, predjeniKm, vremeTrajanja } = body;
+    const { ucesceId, predjeniKm, vremeTrajanja } = body;
 
-    if (!ucesceId || !korisnikId || !predjeniKm || !vremeTrajanja) {
+    if (!ucesceId || !predjeniKm || !vremeTrajanja) {
       return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
     }
 
-    const uId = parseInt(ucesceId);
-    const kId = parseInt(korisnikId);
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+    const korisnikId = auth.id;
+
+    const uId = Number(ucesceId);
+    const kId = Number(korisnikId);
     const km = parseFloat(predjeniKm);
 
     if (Number.isNaN(uId) || Number.isNaN(kId) || Number.isNaN(km) || km <= 0) {

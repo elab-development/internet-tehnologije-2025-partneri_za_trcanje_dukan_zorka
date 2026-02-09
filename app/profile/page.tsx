@@ -20,21 +20,20 @@ export default function Profile() {
   const [commentError, setCommentError] = useState<string | null>(null);
 
   const fetchProfile = async () => {
-
-    const localUser = localStorage.getItem('currentUser');
-    if (!localUser) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUser = JSON.parse(localUser);
-    setCurrentUser(parsedUser);
-
     try {
+      const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!meRes.ok) {
+        router.push('/login');
+        return;
+      }
+      const parsedUser = await meRes.json();
+      setCurrentUser(parsedUser);
+
       const res = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: parsedUser.email })
+        body: JSON.stringify({}),
+        credentials: 'include'
       });
       const data = await res.json();
       setUser(data);
@@ -51,7 +50,8 @@ export default function Profile() {
     const res = await fetch('/api/profile/update', {
       method: 'PUT', 
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user.email, bio: bioText })
+      body: JSON.stringify({ bio: bioText }),
+      credentials: 'include'
     });
 
     if (res.ok) {
@@ -74,7 +74,8 @@ export default function Profile() {
       const res = await fetch('/api/races/leave', {
         method: 'DELETE', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trkaId, korisnikId: user.id })
+        body: JSON.stringify({ trkaId }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -94,9 +95,9 @@ export default function Profile() {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        trkaId: trkaId, 
-        userId: user.id  
-      })
+        trkaId: trkaId
+      }),
+      credentials: 'include'
     });
 
     if (res.ok) {
@@ -154,10 +155,10 @@ export default function Profile() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ucesceId,
-          korisnikId: user.id,
           predjeniKm: resultData.predjeniKm,
           vremeTrajanja: resultData.vremeTrajanja
-        })
+        }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -191,10 +192,10 @@ export default function Profile() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           trkaId,
-          autorId: user.id,
           tekst: commentData.tekst,
           ocena: commentData.ocena
-        })
+        }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -213,7 +214,8 @@ export default function Profile() {
       const res = await fetch('/api/races/requests/approve', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ucesceId, organizerId: user.id })
+        body: JSON.stringify({ ucesceId }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -232,7 +234,8 @@ export default function Profile() {
       const res = await fetch('/api/races/requests/reject', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ucesceId, organizerId: user.id })
+        body: JSON.stringify({ ucesceId }),
+        credentials: 'include'
       });
 
       if (res.ok) {
@@ -395,8 +398,9 @@ export default function Profile() {
                   )}
 
                   {ucesce.status === 'PRIHVACENO' &&
-                    !ucesce.rezultat &&
-                    new Date(ucesce.trka.vremePocetka) < new Date() && (
+                    !ucesce.rezultat
+                     &&  new Date(ucesce.trka.vremePocetka) < new Date() 
+                     && (
                     <div>
                       {resultFormOpen === ucesce.id ? (
                         <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-3">
@@ -429,8 +433,9 @@ export default function Profile() {
                   )}
 
                   {ucesce.status === 'PRIHVACENO' &&
-                    !ucesce.rezultat &&
-                    new Date(ucesce.trka.vremePocetka) >= new Date() && (
+                    !ucesce.rezultat 
+                    && new Date(ucesce.trka.vremePocetka) >= new Date()
+                     && (
                     <Button label="Rezultat nakon trke" variant="secondary" disabled />
                   )}
 

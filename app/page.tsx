@@ -54,13 +54,16 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const checkUser = () => {
-      const saved = localStorage.getItem('currentUser');
-      if (saved) {
-        const user = JSON.parse(saved);
+    const checkUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!res.ok) return;
+        const user = await res.json();
         setIsLoggedIn(true);
         setCurrentUser(user);
-        fetchTrke(); 
+        fetchTrke();
+      } catch {
+        // noop
       }
     };
     checkUser();
@@ -71,7 +74,7 @@ export default function Home() {
     try {
       setRacesLoading(true);
       setRacesError(null);
-      const res = await fetch('/api/races'); 
+      const res = await fetch('/api/races', { credentials: 'include' }); 
       const data = await res.json();
       setTrke(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -162,11 +165,11 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginForm.email, lozinka: loginForm.password }),
+        credentials: 'include',
       });
       const data = await res.json();
       
       if (res.ok) {
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
         setIsLoggedIn(true);
         setCurrentUser(data.user);
         fetchTrke(); 
@@ -178,8 +181,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    fetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
-    localStorage.removeItem('currentUser');
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => null);
     window.location.reload();
   };
 
@@ -210,9 +212,9 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...newRaceData,
-          organizatorId: currentUser?.id 
-        })
+          ...newRaceData
+        }),
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -248,7 +250,13 @@ export default function Home() {
                 <span className="glass-pill">Organizacija</span>
               </div>
 
-              <div className="mt-6 space-y-4">
+              <form
+                className="mt-6 space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleLogin();
+                }}
+              >
                 <Input
                   label="Email"
                   name="email"
@@ -267,11 +275,11 @@ export default function Home() {
                     {loginError}
                   </div>
                 )}
-                <Button label={loginLoading ? "Učitavanje..." : "Prijavi se"} fullWidth onClick={handleLogin} />
+                <Button label={loginLoading ? "Učitavanje..." : "Prijavi se"} fullWidth type="submit" />
                 <p className="text-xs text-slate-500">
                   Nemaš nalog? Registruj se u 30 sekundi.
                 </p>
-              </div>
+              </form>
             </div>
           </div>
         )}
@@ -293,6 +301,7 @@ export default function Home() {
               interactive={isLoggedIn}
               trke={filteredTrke}
               draftLocation={draftLocation}
+              currentUser={currentUser}
               onMapClick={handleMapClick}
             />
           </div>

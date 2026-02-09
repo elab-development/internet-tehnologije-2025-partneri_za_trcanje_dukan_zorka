@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email } = body;
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
 
     const korisnik = await prisma.korisnik.findUnique({
-      where: { email },
+      where: { id: auth.id },
       include: {
         ucesca: {
           include: {

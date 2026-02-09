@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function DELETE(req: Request) {
   try {
     const body = await req.json();
-    const { trkaId, korisnikId } = body;
+    const { trkaId } = body;
+
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+    const korisnikId = auth.id;
 
     
     await prisma.ucesce.deleteMany({
       where: {
-        trkaId: parseInt(trkaId),
-        korisnikId: parseInt(korisnikId)
+        trkaId: Number(trkaId),
+        korisnikId: Number(korisnikId)
       }
     });
 

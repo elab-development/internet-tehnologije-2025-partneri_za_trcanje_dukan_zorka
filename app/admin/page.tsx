@@ -32,26 +32,31 @@ export default function AdminPanel() {
   const [currentUser, setCurrentUser] = useState<{ ime: string } | null>(null);
   
   useEffect(() => {
-    const stored = localStorage.getItem('currentUser');
-    if (!stored) { router.push('/'); return; }
-    
-    const user = JSON.parse(stored);
-    if (user.uloga !== 'ADMIN') {
-      alert("Nemaš pristup ovoj stranici!");
-      router.push('/');
-      return;
-    }
-    
-    setIsAdmin(true);
-    setCurrentUser(user);
-    fetchData();
+    const load = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!res.ok) { router.push('/'); return; }
+        const user = await res.json();
+        if (user.uloga !== 'ADMIN') {
+          alert("Nemaš pristup ovoj stranici!");
+          router.push('/');
+          return;
+        }
+        setIsAdmin(true);
+        setCurrentUser(user);
+        fetchData();
+      } catch {
+        router.push('/');
+      }
+    };
+    load();
   }, []);
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await fetch('/api/admin/data');
+      const res = await fetch('/api/admin/data', { credentials: 'include' });
       if (!res.ok) throw new Error('Ne mogu da učitam podatke.');
       const data = await res.json();
       setUsers(Array.isArray(data.users) ? data.users : []);
@@ -87,13 +92,14 @@ export default function AdminPanel() {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ targetUserId: pendingDelete.id }),
+          credentials: 'include',
         });
       } else {
-        const stored = JSON.parse(localStorage.getItem('currentUser') || '{}');
         await fetch('/api/races/delete', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trkaId: pendingDelete.id, userId: stored.id }),
+          body: JSON.stringify({ trkaId: pendingDelete.id }),
+          credentials: 'include',
         });
       }
       closeDelete();

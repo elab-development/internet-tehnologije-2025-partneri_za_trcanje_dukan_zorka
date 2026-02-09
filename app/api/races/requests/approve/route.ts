@@ -1,17 +1,25 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { ucesceId, organizerId } = body;
+    const { ucesceId } = body;
 
-    if (!ucesceId || !organizerId) {
+    if (!ucesceId) {
       return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
     }
 
-    const uId = parseInt(ucesceId);
-    const oId = parseInt(organizerId);
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+
+    const organizerId = auth.id;
+
+    const uId = Number(ucesceId);
+    const oId = Number(organizerId);
 
     const ucesce = await prisma.ucesce.findUnique({
       where: { id: uId },

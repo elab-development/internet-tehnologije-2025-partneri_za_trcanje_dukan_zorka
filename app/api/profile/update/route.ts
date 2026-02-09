@@ -1,18 +1,20 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { email, bio } = body;
+    const { bio } = body;
 
-    if (!email) {
-      return NextResponse.json({ message: 'Email je obavezan.' }, { status: 400 });
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
     }
 
     
     const azuriranKorisnik = await prisma.korisnik.update({
-      where: { email },
+      where: { id: auth.id },
       data: {
         bio: bio 
       }

@@ -1,21 +1,36 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function DELETE(req: Request) {
   try {
     const body = await req.json();
-    const { trkaId, userId } = body; 
+    const { trkaId } = body; 
+
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+    const userId = auth.id;
+
+    if (trkaId === undefined || trkaId === null) {
+      return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
+    }
+    const trkaIdNum = Number(trkaId);
+    if (Number.isNaN(trkaIdNum)) {
+      return NextResponse.json({ message: 'Neispravan ID trke.' }, { status: 400 });
+    }
 
    
     const trka = await prisma.trka.findUnique({
-      where: { id: parseInt(trkaId) }
+      where: { id: trkaIdNum }
     });
 
     if (!trka) return NextResponse.json({ message: 'Trka ne postoji.' }, { status: 404 });
 
     
     const korisnik = await prisma.korisnik.findUnique({
-      where: { id: parseInt(userId) }
+      where: { id: Number(userId) }
     });
 
     if (!korisnik) return NextResponse.json({ message: 'Korisnik ne postoji.' }, { status: 404 });
@@ -28,13 +43,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ message: 'Nemaš dozvolu da obrišeš ovu trku.' }, { status: 403 });
     }
 
-    await prisma.komentar.deleteMany({ where: { trkaId: parseInt(trkaId) } });
-    await prisma.ucesce.deleteMany({ where: { trkaId: parseInt(trkaId) } });
-    await prisma.trka.delete({ where: { id: parseInt(trkaId) } });
+    await prisma.rezultat.deleteMany({
+      where: { ucesce: { trkaId: trkaIdNum } }
+    });
+    await prisma.komentar.deleteMany({ where: { trkaId: trkaIdNum } });
+    await prisma.ucesce.deleteMany({ where: { trkaId: trkaIdNum } });
+    await prisma.trka.delete({ where: { id: trkaIdNum } });
 
     return NextResponse.json({ message: 'Trka obrisana.' }, { status: 200 });
 
   } catch (error) {
+    console.error('DELETE /api/races/delete error:', error);
     return NextResponse.json({ message: 'Greška na serveru.' }, { status: 500 });
   }
 }

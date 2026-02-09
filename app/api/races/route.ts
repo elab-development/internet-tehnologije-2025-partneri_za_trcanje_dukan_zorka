@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 
 export async function GET() {
@@ -35,10 +36,15 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { naziv, vreme, distanca, lat, lng, organizatorId, opis, tezina } = body;
+    const { naziv, vreme, distanca, lat, lng, opis, tezina } = body;
    
-    if (!naziv || !lat || !lng || !organizatorId) {
+    if (!naziv || !lat || !lng) {
       return NextResponse.json({ message: 'Nedostaju podaci.' }, { status: 400 });
+    }
+
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
     }
 
     const novaTrka = await prisma.trka.create({
@@ -49,7 +55,7 @@ export async function POST(req: Request) {
         lokacijaLat: lat,
         lokacijaLng: lng,
         opis: opis || "",
-        organizatorId: parseInt(organizatorId),
+        organizatorId: auth.id,
         tezina: tezina || "Rekreativno",
         status: 'PLANIRANA'
       }

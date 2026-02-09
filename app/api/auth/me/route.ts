@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) {
+    const payload = await getAuthPayloadFromCookies();
+    if (!payload) {
       return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
     }
 
-    const payload = verifyToken(token);
     const korisnik = await prisma.korisnik.findUnique({
       where: { id: payload.id },
       select: { id: true, email: true, imePrezime: true, uloga: true }

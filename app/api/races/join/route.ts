@@ -1,19 +1,27 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { trkaId, korisnikId } = body;
+    const { trkaId } = body;
 
-    if (!trkaId || !korisnikId) {
+    if (!trkaId) {
       return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
     }
 
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+
+    const korisnikId = auth.id;
+
     const existing = await prisma.ucesce.findFirst({
       where: {
-        trkaId: parseInt(trkaId),
-        korisnikId: parseInt(korisnikId)
+        trkaId: Number(trkaId),
+        korisnikId: Number(korisnikId)
       }
     });
 
@@ -22,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     const trka = await prisma.trka.findUnique({
-      where: { id: parseInt(trkaId) },
+      where: { id: Number(trkaId) },
       include: { organizator: true }
     });
 
@@ -34,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const korisnik = await prisma.korisnik.findUnique({
-      where: { id: parseInt(korisnikId) }
+      where: { id: Number(korisnikId) }
     });
 
     if (!korisnik) {
@@ -43,8 +51,8 @@ export async function POST(req: Request) {
 
     const novoUcesce = await prisma.ucesce.create({
       data: {
-        trkaId: parseInt(trkaId),
-        korisnikId: parseInt(korisnikId),
+        trkaId: Number(trkaId),
+        korisnikId: Number(korisnikId),
       }
     });
 

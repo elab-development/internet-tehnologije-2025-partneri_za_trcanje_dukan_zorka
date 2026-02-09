@@ -29,17 +29,13 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok) {
         alert('Dobrodošli nazad!');
-        
-        
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
-        
-       
         router.push('/'); 
       } else {
         alert(data.message || 'Greška pri prijavi.');
@@ -56,7 +52,7 @@ export default function Login() {
 
       <div className="max-w-md mx-auto mt-40 p-8 bg-white rounded-xl shadow-lg border border-gray-100 ">
         <h1 className="text-3xl font-bold text-center mb-2 text-blue-600">
-          Dobrodošli nazad! 👋
+          Dobrodošli nazad!
         </h1>
         <p className="text-gray-500 text-center mb-8">
           Prijavi se da vidiš nove trke.

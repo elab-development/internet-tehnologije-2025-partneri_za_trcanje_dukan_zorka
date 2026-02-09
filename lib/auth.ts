@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 export type AuthPayload = {
   id: number;
@@ -23,4 +24,15 @@ export const signToken = (payload: AuthPayload) => {
 export const verifyToken = (token: string) => {
   const secret = getSecret();
   return jwt.verify(token, secret) as AuthPayload;
+};
+
+export const getAuthPayloadFromCookies = async () => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth_token')?.value;
+  if (!token) return null;
+  try {
+    return verifyToken(token);
+  } catch {
+    return null;
+  }
 };

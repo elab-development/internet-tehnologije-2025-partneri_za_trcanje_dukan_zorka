@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthPayloadFromCookies } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { trkaId, autorId, tekst, ocena } = body;
+    const { trkaId, tekst, ocena } = body;
 
-    if (!trkaId || !autorId || !tekst || !ocena) {
+    if (!trkaId || !tekst || !ocena) {
       return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
     }
 
-    const tId = parseInt(trkaId);
-    const aId = parseInt(autorId);
-    const rating = parseInt(ocena);
+    const auth = await getAuthPayloadFromCookies();
+    if (!auth) {
+      return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
+    }
+    const autorId = auth.id;
+
+    const tId = Number(trkaId);
+    const aId = Number(autorId);
+    const rating = Number(ocena);
 
     if (Number.isNaN(tId) || Number.isNaN(aId) || Number.isNaN(rating)) {
       return NextResponse.json({ message: 'Neispravni podaci.' }, { status: 400 });
