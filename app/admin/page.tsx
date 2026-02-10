@@ -113,49 +113,49 @@ export default function AdminPanel() {
   if (!isAdmin) return null;
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar currentUser={currentUser} />
       <div className="p-8 max-w-6xl mx-auto">
         <div className="flex items-end justify-between gap-4 mb-8 animate-fade-in">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Admin</p>
-            <h1 className="text-3xl md:text-4xl font-black text-white">Kontrolni Panel</h1>
-            <p className="text-slate-400 mt-2">Upravljanje korisnicima i trkama.</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Admin</p>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">Kontrolni Panel</h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-2">Upravljanje korisnicima i trkama.</p>
           </div>
           <div className="hidden md:flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm text-slate-300">Prijavljen kao ADMIN</span>
+            <span className="text-sm text-slate-600 dark:text-slate-300">Prijavljen kao ADMIN</span>
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-950/40 px-4 py-3 text-red-200">
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
             {error}
           </div>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* KORISNICI */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 shadow-[0_0_40px_rgba(15,23,42,0.45)] p-6 transition-all duration-300 hover:border-white/20 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(56,189,248,0.15)] animate-fade-in-up">
+          <div className="bg-white backdrop-blur rounded-2xl border border-slate-200 shadow-lg p-6 transition-all duration-300 hover:border-slate-300 hover:-translate-y-1 dark:bg-white/5 dark:border-white/10 dark:shadow-[0_0_40px_rgba(15,23,42,0.45)] dark:hover:border-white/20 dark:hover:shadow-[0_0_60px_rgba(56,189,248,0.15)] animate-fade-in-up">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Korisnici</h2>
-              <span className="text-xs rounded-full bg-white/10 px-3 py-1 text-slate-200 shimmer">
+              <span className="text-xs rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-white/10 dark:text-slate-200 shimmer">
                 {users.length} ukupno
               </span>
             </div>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
               {isLoading && (
                 <div className="space-y-3">
-                  <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-2/3 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
+                  <div className="h-4 w-1/2 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
+                  <div className="h-4 w-3/4 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
                 </div>
               )}
               {!isLoading && users.map((u) => (
-                <div key={u.id} className="flex items-center justify-between gap-4 border-b border-white/10 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-white/5 hover:translate-x-1">
-                  <span className="text-slate-100">
+                <div key={u.id} className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-slate-50 hover:translate-x-1 dark:border-white/10 dark:hover:bg-white/5">
+                  <span className="text-slate-800 dark:text-slate-100">
                     {u.imePrezime}{' '}
-                    <span className="text-xs text-slate-400">({u.uloga})</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">({u.uloga})</span>
                   </span>
                   {u.uloga !== 'ADMIN' && (
                     <button
@@ -174,24 +174,24 @@ export default function AdminPanel() {
           </div>
 
           {/* TRKE */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 shadow-[0_0_40px_rgba(15,23,42,0.45)] p-6 transition-all duration-300 hover:border-white/20 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(244,63,94,0.15)] animate-fade-in-up delay-150">
+          <div className="bg-white backdrop-blur rounded-2xl border border-slate-200 shadow-lg p-6 transition-all duration-300 hover:border-slate-300 hover:-translate-y-1 dark:bg-white/5 dark:border-white/10 dark:shadow-[0_0_40px_rgba(15,23,42,0.45)] dark:hover:border-white/20 dark:hover:shadow-[0_0_60px_rgba(244,63,94,0.15)] animate-fade-in-up delay-150">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Trke</h2>
-              <span className="text-xs rounded-full bg-white/10 px-3 py-1 text-slate-200 shimmer">
+              <span className="text-xs rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-white/10 dark:text-slate-200 shimmer">
                 {races.length} ukupno
               </span>
             </div>
             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
               {isLoading && (
                 <div className="space-y-3">
-                  <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-2/3 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
+                  <div className="h-4 w-1/2 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
+                  <div className="h-4 w-3/4 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
                 </div>
               )}
               {!isLoading && races.map((r) => (
-                <div key={r.id} className="flex items-center justify-between gap-4 border-b border-white/10 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-white/5 hover:translate-x-1">
-                  <span className="text-slate-100">{r.naziv}</span>
+                <div key={r.id} className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-slate-50 hover:translate-x-1 dark:border-white/10 dark:hover:bg-white/5">
+                  <span className="text-slate-800 dark:text-slate-100">{r.naziv}</span>
                   <button
                     onClick={() => openDelete({ kind: 'race', id: r.id, label: r.naziv })}
                     className="text-red-300 hover:text-red-200 font-semibold transition"
@@ -210,8 +210,8 @@ export default function AdminPanel() {
 
       {pendingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur p-6 shadow-2xl animate-pop-in">
-            <h3 className="text-lg font-bold text-white">Potvrda brisanja</h3>
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 backdrop-blur p-6 shadow-2xl animate-pop-in dark:border-white/10 dark:bg-slate-950/90">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Potvrda brisanja</h3>
             <p className="text-sm text-slate-300 mt-2">
               {pendingDelete.kind === 'user'
                 ? `Brišeš korisnika: ${pendingDelete.label}.`
@@ -232,7 +232,7 @@ export default function AdminPanel() {
                 <input
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-red-400"
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-red-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                   placeholder="OBRISI"
                 />
               </div>
@@ -240,7 +240,7 @@ export default function AdminPanel() {
             <div className="mt-6 flex items-center justify-end gap-2">
               <button
                 onClick={closeDelete}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:border-white/30"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:border-slate-300 dark:border-white/10 dark:text-slate-200 dark:hover:border-white/30"
               >
                 Odustani
               </button>

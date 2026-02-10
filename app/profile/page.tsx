@@ -98,7 +98,6 @@ export default function Profile() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', uploadPreset);
-      formData.append('folder', 'profilne');
 
 
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
@@ -161,7 +160,7 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Učitavanje profila...</div>;
+  if (loading) return <div className="p-10  text-center">Učitavanje profila...</div>;
 
   const handleDeleteRace = async (trkaId: number) => {
     if (!confirm('Da li sigurno želiš da obrišeš ovu trku?')) return;
@@ -329,7 +328,7 @@ export default function Profile() {
   const notificationsCount = user?.obavestenja?.length ?? 0;
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar currentUser={currentUser} />
 
       <div className="max-w-6xl mx-auto p-6 space-y-8 anim-enter">
@@ -373,28 +372,28 @@ export default function Profile() {
                 <h1 className="text-2xl font-bold text-white">{user?.imePrezime}</h1>
                 <span className="glass-chip">{user?.uloga}</span>
               </div>
-              <p className="text-sm text-slate-300">{user?.email}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{user?.email}</p>
 
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div className="glass-stat">
-                  <p className="text-xs text-slate-300">Ukupno km</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">Ukupno km</p>
                   <p className="text-lg font-semibold">{user?.ukupnoPredjeniKm ?? 0}</p>
                 </div>
                 <div className="glass-stat">
-                  <p className="text-xs text-slate-300">Organizovane trke</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">Organizovane trke</p>
                   <p className="text-lg font-semibold">{user?.organizovaneTrke?.length ?? 0}</p>
                 </div>
                 <div className="glass-stat">
-                  <p className="text-xs text-slate-300">Prijavljene trke</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">Prijavljene trke</p>
                   <p className="text-lg font-semibold">{user?.ucesca?.length ?? 0}</p>
                 </div>
               </div>
 
               <div className="mt-5">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Biografija</p>
+                <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">Biografija</p>
                 {!isEditing ? (
                   <div className="mt-2">
-                    <p className="text-slate-200 italic">
+                    <p className="text-slate-700 dark:text-slate-200 italic">
                       {user?.bio || 'Nemaš upisanu biografiju.'}
                     </p>
                     <button
@@ -407,7 +406,7 @@ export default function Profile() {
                 ) : (
                   <div className="mt-2 space-y-3">
                     <textarea
-                      className="w-full rounded-md border border-white/40 bg-white/80 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500"
+                      className="w-full rounded-md border border-white/40 bg-white/80 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       rows={3}
                       value={bioText}
                       onChange={(e) => setBioText(e.target.value)}
@@ -437,20 +436,20 @@ export default function Profile() {
         <section className="space-y-4 anim-enter delay-1">
           <div className="flex items-center justify-between">
             <h2 className="section-title">ZAHTEVI ZA UČEŠĆE</h2>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {user?.pendingRequests?.length ?? 0} zahteva
             </span>
           </div>
           {user?.pendingRequests?.length === 0 ? (
-            <div className="glass-card p-4 text-slate-300 italic">Nema zahteva.</div>
+            <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nema zahteva.</div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {user?.pendingRequests?.map((req: any) => (
                 <div key={req.id} className="glass-card p-5 flex flex-col gap-3">
                   <div>
                     <h3 className="font-bold text-lg text-white">{req.korisnik.imePrezime}</h3>
-                    <p className="text-sm text-slate-300">🏁 {req.trka.naziv}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-300">🏁 {req.trka.naziv}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       📅 {new Date(req.trka.vremePocetka).toLocaleDateString()} • 📏 {req.trka.planiranaDistancaKm} km
                     </p>
                   </div>
@@ -474,7 +473,7 @@ export default function Profile() {
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               {user?.ucesca?.length === 0 ? (
-                <div className="glass-card p-4 text-slate-300 italic">Nisi prijavljen ni na jednu trku.</div>
+              <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nisi prijavljen ni na jednu trku.</div>
               ) : (
                 <div className="space-y-4">
                   {user?.ucesca.map((ucesce: any) => (
@@ -482,13 +481,13 @@ export default function Profile() {
                     <div className="flex justify-between items-start gap-3">
                       <div>
                         <h3 className="font-bold text-lg text-white">{ucesce.trka.naziv}</h3>
-                        <p className="text-sm text-slate-300">
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
                           📅 {new Date(ucesce.trka.vremePocetka).toLocaleDateString()}
                         </p>
-                        <p className="text-sm text-slate-300">
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
                           📍 {ucesce.trka.planiranaDistancaKm} km
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">Status: {ucesce.status}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Status: {ucesce.status}</p>
                       </div>
                       <button
                         onClick={() => handleLeave(ucesce.trka.id)}
@@ -515,13 +514,13 @@ export default function Profile() {
                             <div className="glass-subcard">
                               <div className="grid grid-cols-2 gap-2">
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800"
+                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Pređeno km"
                                   value={resultData.predjeniKm}
                                   onChange={(e) => setResultData({ ...resultData, predjeniKm: e.target.value })}
                                 />
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800"
+                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Vreme (HH:MM:SS)"
                                   value={resultData.vremeTrajanja}
                                   onChange={(e) => setResultData({ ...resultData, vremeTrajanja: e.target.value })}
@@ -570,7 +569,7 @@ export default function Profile() {
                             <div className="glass-subcard">
                               <div className="grid grid-cols-2 gap-2">
                                 <select
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800"
+                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   value={commentData.ocena}
                                   onChange={(e) => setCommentData({ ...commentData, ocena: e.target.value })}
                                 >
@@ -581,7 +580,7 @@ export default function Profile() {
                                   <option value="1">1 - Jako loše</option>
                                 </select>
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800"
+                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Komentar"
                                   value={commentData.tekst}
                                   onChange={(e) => setCommentData({ ...commentData, tekst: e.target.value })}
@@ -609,7 +608,7 @@ export default function Profile() {
 
             <div className="space-y-4">
               {user?.organizovaneTrke?.length === 0 ? (
-                <div className="glass-card p-4 text-slate-300 italic">Nisi organizovao nijednu trku.</div>
+              <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nisi organizovao nijednu trku.</div>
               ) : (
                 <div className="space-y-4">
                   {user?.organizovaneTrke.map((trka: any) => (
@@ -622,7 +621,7 @@ export default function Profile() {
                         />
                       </div>
                       <h3 className="font-bold text-lg text-white">{trka.naziv}</h3>
-                      <p className="text-sm text-slate-300">Status: {trka.status}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">Status: {trka.status}</p>
                     </div>
                   ))}
                 </div>
@@ -655,19 +654,19 @@ export default function Profile() {
               <h3 className="text-lg font-bold text-white">Obaveštenja</h3>
               <button
                 onClick={() => setNotificationsOpen(false)}
-                className="text-slate-300 hover:text-white"
+                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
             <div className="mt-5 space-y-3 overflow-y-auto pr-2 max-h-[calc(100vh-120px)]">
               {user?.obavestenja?.length === 0 ? (
-                <div className="glass-card p-4 text-slate-300 italic">Nema obaveštenja.</div>
+                <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nema obaveštenja.</div>
               ) : (
                 user?.obavestenja?.map((o: any) => (
                   <div key={o.id} className="glass-card p-4">
-                    <p className="text-sm text-slate-200">{o.tekst}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-sm text-slate-700 dark:text-slate-200">{o.tekst}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       {new Date(o.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -684,32 +683,53 @@ export default function Profile() {
           font-size: 0.9rem;
           letter-spacing: 0.35em;
           text-transform: uppercase;
+          color: rgba(15, 23, 42, 0.7);
+        }
+        .dark .section-title {
           color: rgba(226, 232, 240, 0.9);
         }
         .glass-card {
-          background: rgba(15, 23, 42, 0.55);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+          background: rgba(255, 255, 255, 0.65);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
           backdrop-filter: blur(18px);
           border-radius: 20px;
           transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
         }
+        .dark .glass-card {
+          background: rgba(15, 23, 42, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+        }
         .glass-card:hover {
           transform: translateY(-3px);
           border-color: rgba(255, 255, 255, 0.26);
+          box-shadow: 0 22px 45px rgba(15, 23, 42, 0.2);
+        }
+        .dark .glass-card:hover {
           box-shadow: 0 22px 45px rgba(15, 23, 42, 0.45);
         }
         .glass-subcard {
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.9);
           border-radius: 14px;
           padding: 12px;
+          color: #0f172a;
+        }
+        .dark .glass-subcard {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.18);
           color: #e2e8f0;
         }
         .glass-chip {
           border-radius: 999px;
           padding: 4px 10px;
           font-size: 12px;
+          background: rgba(59, 130, 246, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          color: #1e3a8a;
+        }
+        .dark .glass-chip {
           background: rgba(59, 130, 246, 0.18);
           border: 1px solid rgba(59, 130, 246, 0.4);
           color: #bfdbfe;
@@ -717,14 +737,22 @@ export default function Profile() {
         .glass-stat {
           border-radius: 14px;
           padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.75);
+          border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+        .dark .glass-stat {
           background: rgba(255, 255, 255, 0.08);
           border: 1px solid rgba(255, 255, 255, 0.18);
         }
         .glass-panel {
-          background: rgba(10, 15, 28, 0.88);
-          border-left: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.85);
+          border-left: 1px solid rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(20px);
           border-radius: 24px 0 0 24px;
+        }
+        .dark .glass-panel {
+          background: rgba(10, 15, 28, 0.88);
+          border-left: 1px solid rgba(255, 255, 255, 0.12);
         }
         .glass-fab {
           display: inline-flex;
@@ -732,16 +760,26 @@ export default function Profile() {
           gap: 8px;
           padding: 10px 14px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          color: #e2e8f0;
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.9);
+          color: #0f172a;
           font-weight: 600;
-          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.35);
+          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
           backdrop-filter: blur(12px);
           transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease;
         }
+        .dark .glass-fab {
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: #e2e8f0;
+          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.35);
+        }
         .glass-fab:hover {
           transform: translateY(-2px);
+          background: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 20px 34px rgba(15, 23, 42, 0.22);
+        }
+        .dark .glass-fab:hover {
           background: rgba(255, 255, 255, 0.2);
           box-shadow: 0 20px 34px rgba(15, 23, 42, 0.45);
         }

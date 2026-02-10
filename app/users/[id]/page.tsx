@@ -78,12 +78,12 @@ export default function PublicProfile() {
   }, [id]);
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar currentUser={currentUser} />
 
       <div className="max-w-5xl mx-auto p-6 md:p-10">
         {loading && (
-          <div className="rounded-2xl bg-white/70 border border-white/80 p-6 shadow">
+          <div className="rounded-2xl bg-white/70 border border-white/80 p-6 shadow dark:bg-slate-900/60 dark:border-white/10">
             Učitavanje profila...
           </div>
         )}
@@ -100,7 +100,7 @@ export default function PublicProfile() {
                 <img
                   src={data.slikaUrl}
                   alt={data.imePrezime}
-                  className="h-24 w-24 rounded-full object-cover border border-white/80 shadow"
+                  className="h-24 w-24 rounded-full object-cover border border-white/80 shadow dark:border-white/20"
                 />
               ) : (
                 <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl">
@@ -109,28 +109,28 @@ export default function PublicProfile() {
               )}
               <div className="text-center md:text-left">
                 <h1 className="text-2xl md:text-3xl font-black">{data.imePrezime}</h1>
-                <p className="text-sm text-slate-500 mt-1">{data.uloga}</p>
-                <p className="text-slate-600 mt-3">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{data.uloga}</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-3">
                   {data.bio || 'Korisnik nema biografiju.'}
                 </p>
               </div>
               <div className="ml-auto grid grid-cols-2 gap-3 w-full md:w-auto">
                 <div className="glass-mini text-center">
-                  <p className="text-xs text-slate-500">Ukupno km</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Ukupno km</p>
                   <p className="text-lg font-bold">{data.ukupnoPredjeniKm ?? 0}</p>
                 </div>
                 <div className="glass-mini text-center">
-                  <p className="text-xs text-slate-500">Organizuje</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Organizuje</p>
                   <p className="text-lg font-bold">{data.organizovaneTrkeCount}</p>
                 </div>
                 <div className="glass-mini text-center">
-                  <p className="text-xs text-slate-500">Ocena</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Ocena</p>
                   <p className="text-lg font-bold">
                     {data.avgOcena ? data.avgOcena.toFixed(1) : '-'}
                   </p>
                 </div>
                 <div className="glass-mini text-center">
-                  <p className="text-xs text-slate-500">Broj ocena</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Broj ocena</p>
                   <p className="text-lg font-bold">{data.brojOcena}</p>
                 </div>
               </div>
@@ -140,13 +140,13 @@ export default function PublicProfile() {
               <div className="glass-card">
                 <h2 className="text-lg font-bold">Poslednje organizovane trke</h2>
                 {data.organizovaneTrke.length === 0 ? (
-                  <p className="text-sm text-slate-500 mt-3">Nema organizovanih trka.</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">Nema organizovanih trka.</p>
                 ) : (
                   <div className="mt-4 space-y-3">
                     {data.organizovaneTrke.map((t) => (
-                      <div key={t.id} className="rounded-lg bg-white/70 border border-white/80 p-3">
+                      <div key={t.id} className="rounded-lg bg-white/70 border border-white/80 p-3 dark:bg-slate-900/60 dark:border-white/10">
                         <p className="font-semibold">{t.naziv}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           📅 {new Date(t.vremePocetka).toLocaleDateString()} • 📏 {t.planiranaDistancaKm} km
                         </p>
                       </div>
@@ -158,17 +158,17 @@ export default function PublicProfile() {
               <div className="glass-card">
                 <h2 className="text-lg font-bold">Komentari o trkama</h2>
                 {data.komentari.length === 0 ? (
-                  <p className="text-sm text-slate-500 mt-3">Nema komentara.</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">Nema komentara.</p>
                 ) : (
                   <div className="mt-4 space-y-3">
                     {data.komentari.map((k) => (
-                      <div key={k.id} className="rounded-lg bg-white/70 border border-white/80 p-3">
+                      <div key={k.id} className="rounded-lg bg-white/70 border border-white/80 p-3 dark:bg-slate-900/60 dark:border-white/10">
                         <div className="flex items-center justify-between">
                           <p className="font-semibold">{k.autor.imePrezime}</p>
-                          <span className="text-xs text-slate-500">⭐ {k.ocena}/5</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">⭐ {k.ocena}/5</span>
                         </div>
-                        <p className="text-xs text-slate-500">Trka: {k.trka.naziv}</p>
-                        <p className="text-sm text-slate-700 mt-2">{k.tekst}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Trka: {k.trka.naziv}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-200 mt-2">{k.tekst}</p>
                       </div>
                     ))}
                   </div>
@@ -188,6 +188,11 @@ export default function PublicProfile() {
           padding: 24px;
           box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
         }
+        .dark .glass-card {
+          background: rgba(15, 23, 42, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+        }
         .glass-mini {
           background: rgba(255, 255, 255, 0.7);
           border: 1px solid rgba(255, 255, 255, 0.9);
@@ -196,6 +201,11 @@ export default function PublicProfile() {
           padding: 10px 12px;
           font-weight: 700;
           color: #0f172a;
+        }
+        .dark .glass-mini {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #e2e8f0;
         }
       `}</style>
     </main>

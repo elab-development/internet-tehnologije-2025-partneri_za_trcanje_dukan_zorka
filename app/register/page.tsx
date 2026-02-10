@@ -65,8 +65,8 @@ export default function Register() {
     }
   };
 
-return (
-    <main className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+  return (
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar />
 
       <div className="max-w-md mx-auto mt-10 p-8  bg-white rounded-xl shadow-lg border border-gray-100">

@@ -14,7 +14,7 @@ export default function About() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar currentUser={currentUser} />
 
       <div className="relative overflow-hidden">
@@ -25,11 +25,11 @@ export default function About() {
         <div className="max-w-6xl mx-auto px-6 py-14 md:py-20">
           <section className="grid gap-10 md:grid-cols-2 items-center">
             <div className="animate-fade-in">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Partneri za trčanje</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Partneri za trčanje</p>
               <h1 className="mt-3 text-4xl md:text-5xl font-black leading-tight">
                 Trči bolje uz zajednicu koja te razume.
               </h1>
-              <p className="mt-4 text-slate-600">
+              <p className="mt-4 text-slate-600 dark:text-slate-300">
                 Projekat iz predmeta Internet Tehnologije koji spaja rekreativce, organizatore i
                 trkačke događaje u jednoj jednostavnoj platformi.
               </p>
@@ -47,7 +47,7 @@ export default function About() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">Naša misija</h2>
-                  <p className="text-slate-600 text-sm">
+                  <p className="text-slate-600 dark:text-slate-300 text-sm">
                     Kreiramo sigurnu i živu trkačku zajednicu gde je organizacija događaja jednostavna,
                     a pronalaženje partnera za trčanje intuitivno.
                   </p>
@@ -56,15 +56,15 @@ export default function About() {
 
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <div className="glass-mini">
-                  <p className="text-xs text-slate-500">Trke</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Trke</p>
                   <p className="text-4xl font-bold">∞</p>
                 </div>
                 <div className="glass-mini">
-                  <p className="text-xs text-slate-500">Korisnici</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Korisnici</p>
                   <p className="text-4xl font-bold">∞</p>
                 </div>
                 <div className="glass-mini">
-                  <p className="text-xs text-slate-500">Organizatori</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Organizatori</p>
                   <p className="text-4xl font-bold">∞</p>
                 </div>
               </div>
@@ -74,19 +74,19 @@ export default function About() {
           <section className="mt-14 grid gap-6 md:grid-cols-3">
             <div className="glass-card hover-float">
               <h3 className="font-bold text-lg">Pametno povezivanje</h3>
-              <p className="text-slate-600 mt-2 text-sm">
+              <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
                 Pronađi trke i ljude prema lokaciji, težini i vremenu događaja.
               </p>
             </div>
             <div className="glass-card hover-float">
               <h3 className="font-bold text-lg">Organizuj bez stresa</h3>
-              <p className="text-slate-600 mt-2 text-sm">
+              <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
                 Kreiranje trke je jedan klik, a pregled prijavljenih učesnika uvek pri ruci.
               </p>
             </div>
             <div className="glass-card hover-float">
               <h3 className="font-bold text-lg">Transparentna pravila</h3>
-              <p className="text-slate-600 mt-2 text-sm">
+              <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
                 Jasne uloge, jednostavna administracija i pouzdano iskustvo.
               </p>
             </div>
@@ -111,21 +111,21 @@ export default function About() {
                   <span className="step-dot" />
                   <div>
                     <p className="font-semibold">Planiranje trka</p>
-                    <p className="text-sm text-slate-600">Organizatori dodaju događaje i detalje.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">Organizatori dodaju događaje i detalje.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="step-dot" />
                   <div>
                     <p className="font-semibold">Prijave i mapa</p>
-                    <p className="text-sm text-slate-600">Korisnici se prijavljuju uz mapu lokacije.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">Korisnici se prijavljuju uz mapu lokacije.</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="step-dot" />
                   <div>
                     <p className="font-semibold">Administracija</p>
-                    <p className="text-sm text-slate-600">Sigurna kontrola i pregled aktivnosti.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">Sigurna kontrola i pregled aktivnosti.</p>
                   </div>
                 </div>
               </div>
@@ -135,10 +135,10 @@ export default function About() {
           <section className="mt-16 glass-card flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h2 className="text-2xl font-bold">Pridruži se zajednici</h2>
-              <p className="text-slate-600 mt-2">
+              <p className="text-slate-600 dark:text-slate-300 mt-2">
                 Ubrzaj svoj napredak, pronađi inspiraciju i trči sa društvom.
               </p>
-              <p className="text-xs text-slate-500 mt-3">Autori: Nikola Dukić, Ognjen Zorkić, 2026.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Autori: Nikola Dukić, Ognjen Zorkić, 2026.</p>
             </div>
             <div className="flex gap-3">
               <span className="glass-pill">Sigurna prijava</span>
@@ -167,6 +167,11 @@ export default function About() {
           padding: 24px;
           box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
         }
+        .dark .glass-card {
+          background: rgba(15, 23, 42, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+        }
         .glass-mini {
           background: rgba(255, 255, 255, 0.6);
           border: 1px solid rgba(255, 255, 255, 0.8);
@@ -175,6 +180,11 @@ export default function About() {
           padding: 12px 14px;
           font-weight: 600;
           color: #0f172a;
+        }
+        .dark .glass-mini {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #e2e8f0;
         }
         .glass-pill {
           background: rgba(255, 255, 255, 0.65);
@@ -185,6 +195,11 @@ export default function About() {
           font-size: 12px;
           font-weight: 700;
           color: #0f172a;
+        }
+        .dark .glass-pill {
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: #e2e8f0;
         }
         .step-dot {
           width: 10px;

@@ -3,26 +3,14 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useState } from 'react';
-import markerIcon from '../images/icon.png';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import blackIconImg from '../images/icon.png';
+import blueIconImg from '../images/blueIcon.png';
+import blackFinishImg from '../images/black-finish.png';
+import blueFinishImg from '../images/blue-finish.png';
 
-const markerIconUrl = typeof markerIcon === 'string' ? markerIcon : markerIcon.src;
-
-const raceIcon = L.icon({
-  iconUrl: markerIconUrl,
-  iconSize: [104, 58],
-  iconAnchor: [42, 46],
-  popupAnchor: [0, -46],
-  className: 'race-marker',
-});
-
-const draftIcon = L.icon({
-  iconUrl: markerIconUrl,
-  iconSize: [104, 58],
-  iconAnchor: [52, 58],
-  popupAnchor: [0, -58],
-  className: 'draft-marker',
-});
+const getIconUrl = (imgImport: any) => (typeof imgImport === 'string' ? imgImport : imgImport.src);
 
 function MapRevalidator({ interactive }: { interactive: boolean }) {
   const map = useMap();
@@ -61,6 +49,55 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    const applyTheme = () => {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        setIsDarkMode(storedTheme === 'dark');
+        return;
+      }
+      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    };
+
+    applyTheme();
+    window.addEventListener('theme-change', applyTheme);
+    window.addEventListener('storage', applyTheme);
+    return () => {
+      window.removeEventListener('theme-change', applyTheme);
+      window.removeEventListener('storage', applyTheme);
+    };
+  }, []);
+
+  const { raceIcon, draftIcon, finishIcon } = useMemo(() => {
+    const baseUrl = isDarkMode ? getIconUrl(blueIconImg) : getIconUrl(blackIconImg);
+    const finishUrl = isDarkMode ? getIconUrl(blueFinishImg) : getIconUrl(blackFinishImg);
+
+    return {
+      raceIcon: L.icon({
+        iconUrl: baseUrl,
+        iconSize: [124, 72],
+        iconAnchor: [62, 72],
+        popupAnchor: [0, -72],
+        className: 'race-marker',
+      }),
+      draftIcon: L.icon({
+        iconUrl: baseUrl,
+        iconSize: [124, 72],
+        iconAnchor: [62, 72],
+        popupAnchor: [0, -72],
+        className: 'draft-marker',
+      }),
+      finishIcon: L.icon({
+        iconUrl: finishUrl,
+        iconSize: [52, 58],
+        iconAnchor: [26, 58],
+        popupAnchor: [0, -58],
+        className: 'finish-marker',
+      }),
+    };
+  }, [isDarkMode]);
 
 
   const openProfile = async (userId?: number | string | null) => {
@@ -114,21 +151,32 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
     } catch (err) { alert("Greška na serveru."); }
   };
 
+  const now = Date.now();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
   return (
-    <MapContainer 
-      center={[44.7866, 20.4489]} 
-      zoom={13} 
-      style={{ height: "100%", width: "100%" }}
-      dragging={true} 
-      zoomControl={true}
-      scrollWheelZoom={true}
-      doubleClickZoom={true}
-      className="map-root"
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <div className="relative h-full w-full">
+      <MapContainer 
+        center={[44.7866, 20.4489]} 
+        zoom={13} 
+        style={{ height: "100%", width: "100%" }}
+        dragging={true} 
+        zoomControl={true}
+        scrollWheelZoom={true}
+        doubleClickZoom={true}
+        className="map-root"
+      >
+        {isDarkMode ? (
+          <TileLayer
+            attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+            url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; OpenStreetMap contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
       
       <MapRevalidator interactive={interactive} />
       
@@ -145,9 +193,17 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       )}
 
       {trke.map((trka) => {
-        const isPast = new Date(trka.vremePocetka) < new Date();
+        const startMs = new Date(trka.vremePocetka).getTime();
+        const isPast = startMs < now;
+        const isOlderThanWeek = now - startMs > sevenDaysMs;
+        if (isOlderThanWeek) return null;
+
         return (
-        <Marker key={trka.id} position={[trka.lokacijaLat, trka.lokacijaLng]} icon={raceIcon}>
+        <Marker
+          key={trka.id}
+          position={[trka.lokacijaLat, trka.lokacijaLng]}
+          icon={isPast ? finishIcon : raceIcon}
+        >
           <Popup>
             <div className="text-center min-w-150px glass-popup">
               <h3 className="font-bold text-lg text-blue-600">{trka.naziv}</h3>
@@ -262,6 +318,12 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                     <p className="font-bold">{profileData.ukupnoPredjeniKm ?? 0}</p>
                   </div>
                 </div>
+                <Link
+                  href={`/users/${profileData.id}`}
+                  className="mt-3 px-4 py-2 rounded-lg bg-blue-600 text-white! text-sm font-semibold hover:bg-blue-700"
+                >
+                  Pogledaj profil
+                </Link>
               </div>
             )}
           </div>
@@ -287,6 +349,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
           text-align: center;
         }
       `}</style>
-    </MapContainer>
+      </MapContainer>
+    </div>
   );
 }

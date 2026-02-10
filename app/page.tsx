@@ -109,20 +109,20 @@ export default function Home() {
       <p className="text-sm font-semibold">Filtriraj trke</p>
       <div className="mt-3 space-y-2">
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
           placeholder="Pretraga po nazivu"
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
         />
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
           placeholder="Min distanca (km)"
           type="number"
           value={filters.minDistance}
           onChange={(e) => setFilters({ ...filters, minDistance: e.target.value })}
         />
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
           type="date"
           value={filters.fromDate}
           onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
@@ -133,18 +133,18 @@ export default function Home() {
 
   const statsContent = (
     <>
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Statistika</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Statistika</p>
       <div className="mt-2 grid grid-cols-2 gap-3">
         <div className="glass-mini text-center">
-          <p className="text-xs text-slate-500">Ukupno</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Ukupno</p>
           <p className="text-lg font-bold">{trke.length}</p>
         </div>
         <div className="glass-mini text-center">
-          <p className="text-xs text-slate-500">Predstojeće</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Predstojeće</p>
           <p className="text-lg font-bold">{upcomingCount}</p>
         </div>
       </div>
-      <div className="mt-3 text-xs text-slate-600">
+      <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
         {racesLoading && "Učitavanje trka..."}
         {!racesLoading && racesError && racesError}
         {!racesLoading && !racesError && filteredTrke.length === 0 && "Nema trka za izabrane filtere."}
@@ -230,18 +230,18 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen flex flex-col overflow-hidden bg-linear-to-br from-slate-50 via-white to-blue-50">
+    <main className="h-screen flex flex-col overflow-hidden bg-linear-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       <div className="z-50 relative">
          <Navbar currentUser={currentUser} /> 
       </div>
 
-      <div className="flex-1 flex relative h-full text-gray-700">
+      <div className="flex-1 flex relative h-full text-slate-700 dark:text-slate-100">
         {!isLoggedIn && (
           <div className="w-full md:w-1/3 p-6 md:p-10 z-40 flex flex-col justify-center h-full absolute md:relative">
             <div className="glass-card animate-fade-in">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Partneri za trčanje</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Partneri za trčanje</p>
               <h1 className="text-3xl font-black mt-3">Uđi u ritam.</h1>
-              <p className="text-slate-600 mt-2">
+              <p className="text-slate-600 dark:text-slate-300 mt-2">
                 Prijavi se i otključaj mapu trka, prijave i organizaciju događaja.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -276,7 +276,7 @@ export default function Home() {
                   </div>
                 )}
                 <Button label={loginLoading ? "Učitavanje..." : "Prijavi se"} fullWidth type="submit" />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Nemaš nalog? Registruj se u 30 sekundi.
                 </p>
               </form>
@@ -289,7 +289,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-6">
               <div className="glass-card max-w-md text-center">
                 <h3 className="text-lg font-bold">🔒 Prijavi se za mapu</h3>
-                <p className="text-slate-600 mt-2">
+                <p className="text-slate-600 dark:text-slate-300 mt-2">
                   Ne želiš da propustiš ova dešavanja.  <br />Uloguj se za potpunu interakciju.
                 </p>
               </div>
@@ -342,13 +342,13 @@ export default function Home() {
                         <p className="text-sm font-semibold">Filteri i statistika</p>
                         <button
                           onClick={() => setShowFilters(false)}
-                          className="text-sm text-slate-600 hover:text-slate-900"
+                          className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                         >
                           ✕
                         </button>
                       </div>
                       <div className="mt-3">{filtersContent}</div>
-                      <div className="mt-5 rounded-xl bg-white/55 border border-white/70 p-3">
+                      <div className="mt-5 rounded-xl bg-white/55 border border-white/70 p-3 dark:bg-slate-900/60 dark:border-white/10">
                         {statsContent}
                       </div>
                       <div className="mt-4 glass-pill w-fit">Klikni na mapu da dodaš trku</div>
@@ -373,7 +373,7 @@ export default function Home() {
           {showNewRaceForm && (
             <div className="text-gray-700 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass-card glass-soft z-30 w-96 border border-blue-200">
               <h3 className="font-bold text-lg mb-2 text-center">Nova trka ovde? 📍</h3>
-              <p className="text-xs text-slate-500 text-center mb-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-4">
                 Lokacija: {newRaceData.lat.toFixed(4)}, {newRaceData.lng.toFixed(4)}
               </p>
               <div className="space-y-3">
@@ -436,10 +436,19 @@ export default function Home() {
               padding: 24px;
               box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
             }
+            .dark .glass-card {
+              background: rgba(15, 23, 42, 0.55);
+              border: 1px solid rgba(255, 255, 255, 0.16);
+              box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+            }
             .glass-soft {
               background: rgba(255, 255, 255, 0.5);
               border: 1px solid rgba(255, 255, 255, 0.7);
               backdrop-filter: blur(22px);
+            }
+            .dark .glass-soft {
+              background: rgba(15, 23, 42, 0.4);
+              border: 1px solid rgba(255, 255, 255, 0.18);
             }
             .glass-mini {
               background: rgba(255, 255, 255, 0.7);
@@ -450,6 +459,11 @@ export default function Home() {
               font-weight: 700;
               color: #0f172a;
             }
+            .dark .glass-mini {
+              background: rgba(255, 255, 255, 0.08);
+              border: 1px solid rgba(255, 255, 255, 0.18);
+              color: #e2e8f0;
+            }
             .glass-pill {
               background: rgba(255, 255, 255, 0.75);
               border: 1px solid rgba(255, 255, 255, 0.9);
@@ -459,6 +473,11 @@ export default function Home() {
               font-size: 12px;
               font-weight: 700;
               color: #0f172a;
+            }
+            .dark .glass-pill {
+              background: rgba(255, 255, 255, 0.12);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              color: #e2e8f0;
             }
             .hover-float {
               transition: transform 200ms ease, box-shadow 200ms ease;
