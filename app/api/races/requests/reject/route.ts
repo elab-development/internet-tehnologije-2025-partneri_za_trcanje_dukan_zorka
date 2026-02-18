@@ -17,7 +17,7 @@ export async function PATCH(req: Request) {
     }
 
     const organizerId = auth.id;
-
+    
     const uId = Number(ucesceId);
     const oId = Number(organizerId);
 

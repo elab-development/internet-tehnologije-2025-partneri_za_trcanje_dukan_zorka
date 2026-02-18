@@ -11,7 +11,7 @@ export async function GET() {
 
     const korisnik = await prisma.korisnik.findUnique({
       where: { id: payload.id },
-      select: { id: true, email: true, imePrezime: true, uloga: true }
+      select: { id: true, email: true, imePrezime: true, uloga: true, slikaUrl: true }
     });
 
     if (!korisnik) {
@@ -22,7 +22,8 @@ export async function GET() {
       id: korisnik.id,
       email: korisnik.email,
       ime: korisnik.imePrezime,
-      uloga: korisnik.uloga
+      uloga: korisnik.uloga,
+      slikaUrl: korisnik.slikaUrl
     }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });

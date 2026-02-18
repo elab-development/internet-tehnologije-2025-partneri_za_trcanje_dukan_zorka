@@ -25,25 +25,23 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const meRes = await fetch('/api/auth/me', { credentials: 'include' });
-      if (!meRes.ok) {
-        router.push('/login');
-        return;
-      }
-      const parsedUser = await meRes.json();
-      setCurrentUser(parsedUser);
-
       const res = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
         credentials: 'include'
       });
+      if (!res.ok) {
+        router.push('/login');
+        return;
+      }
       const data = await res.json();
       setUser(data);
       setBioText(data.bio || '');
+      setCurrentUser({ ime: data.imePrezime, slikaUrl: data.slikaUrl ?? null });
     } catch (err) {
       console.error(err);
+      router.push('/login');
     } finally {
       setLoading(false);
     }

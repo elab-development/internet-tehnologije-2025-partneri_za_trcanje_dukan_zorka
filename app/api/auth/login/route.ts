@@ -18,11 +18,11 @@ export async function POST(req: Request) {
       where: { email }
     });
 
-   
+    
     if (!korisnik) {
       return NextResponse.json({ message: 'Pogrešan email ili lozinka.' }, { status: 401 });
     }
-
+    
     
     const lozinkaJeTacna = await bcrypt.compare(lozinka, korisnik.lozinkaHash);
 
@@ -30,7 +30,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Pogrešan email ili lozinka.' }, { status: 401 });
     }
 
-    // moguce dodavanje JWT tokena kasnije  - DODAT
     const payload = {
       id: korisnik.id,
       email: korisnik.email,
@@ -41,7 +40,10 @@ export async function POST(req: Request) {
     const token = signToken(payload);
     const res = NextResponse.json({ 
       message: 'Uspešna prijava!',
-      user: payload
+      user: {
+        ...payload,
+        slikaUrl: korisnik.slikaUrl ?? null
+      }
     }, { status: 200 });
 
     res.cookies.set('auth_token', token, {

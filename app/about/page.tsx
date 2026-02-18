@@ -1,16 +1,29 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Navbar from '../components/Navbar';
+import dukanImg from '../images/dukan.png';
+import zorkaImg from '../images/zorka.png';
 
 export default function About() {
-  const [currentUser, setCurrentUser] = useState<{ ime: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ ime?: string; slikaUrl?: string | null } | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('currentUser');
-    if (saved) {
-      const user = JSON.parse(saved);
-      setCurrentUser(user);
-    }
+    const loadCurrentUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!res.ok) {
+          setCurrentUser(null);
+          return;
+        }
+        const user = await res.json();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    loadCurrentUser();
   }, []);
 
   return (
@@ -100,7 +113,7 @@ export default function About() {
                 <div className="glass-mini">Tailwind CSS</div>
                 <div className="glass-mini">PostgreSQL (Neon.tech)</div>
                 <div className="glass-mini">Prisma ORM</div>
-                <div className="glass-mini">Leaflet + React Leaflet</div>
+                <div className="glass-mini">Leaflet, Cloudinary</div>
                 <div className="glass-mini">Custom auth</div>
               </div>
             </div>
@@ -131,21 +144,49 @@ export default function About() {
               </div>
             </div>
           </section>
-
+          
           <section className="mt-16 glass-card flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h2 className="text-2xl font-bold">Pridruži se zajednici</h2>
               <p className="text-slate-600 dark:text-slate-300 mt-2">
                 Ubrzaj svoj napredak, pronađi inspiraciju i trči sa društvom.
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Autori: Nikola Dukić, Ognjen Zorkić, 2026.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Partneri za trčanje, 2026.</p>
             </div>
             <div className="flex gap-3">
               <span className="glass-pill">Sigurna prijava</span>
               <span className="glass-pill">Laka organizacija</span>
             </div>
           </section>
+
+          <section className="mt-10 glass-card">
+            <h2 className="text-2xl font-bold text-center">Autori</h2>
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              <div className="glass-mini text-center">
+                <p className="font-bold text-lg">Dukan</p>
+                <div className="mt-3 flex justify-center">
+                  <Image
+                    src={dukanImg}
+                    alt="Dukan"
+                    className="h-40 w-40 rounded-3xl object-cover border border-white/70 dark:border-white/20"
+                  />
+                </div>
+              </div>
+              <div className="glass-mini text-center">
+                <p className="font-bold text-lg">Zorka</p>
+                <div className="mt-3 flex justify-center">
+                  <Image
+                    src={zorkaImg}
+                    alt="Zorka"
+                    className="h-40 w-40 rounded-3xl object-cover border border-white/70 dark:border-white/20"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+          
         </div>
+        
       </div>
 
       <style jsx global>{`

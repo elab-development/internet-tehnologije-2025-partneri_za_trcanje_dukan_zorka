@@ -24,9 +24,11 @@ type Trka = {
 };
 
 export default function Home() {
+  const AUTH_UI_CACHE_KEY = 'auth_ui_cache';
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [trke, setTrke] = useState<Trka[]>([]); 
   const [racesLoading, setRacesLoading] = useState(false);
   const [racesError, setRacesError] = useState<string | null>(null);
@@ -60,15 +62,37 @@ export default function Home() {
 
   useEffect(() => {
     const checkUser = async () => {
+      const cached = localStorage.getItem(AUTH_UI_CACHE_KEY);
+      if (cached) {
+        try {
+          const cachedUser = JSON.parse(cached) as User;
+          setIsLoggedIn(true);
+          setCurrentUser(cachedUser);
+          setAuthLoading(false);
+        } catch {
+          localStorage.removeItem(AUTH_UI_CACHE_KEY);
+        }
+      }
+
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
-        if (!res.ok) return;
+        if (!res.ok) {
+          setIsLoggedIn(false);
+          setCurrentUser(null);
+          localStorage.removeItem(AUTH_UI_CACHE_KEY);
+          return;
+        }
         const user = await res.json();
         setIsLoggedIn(true);
         setCurrentUser(user);
+        localStorage.setItem(AUTH_UI_CACHE_KEY, JSON.stringify(user));
         fetchTrke();
       } catch {
-        // noop
+        setIsLoggedIn(false);
+        setCurrentUser(null);
+        localStorage.removeItem(AUTH_UI_CACHE_KEY);
+      } finally {
+        setAuthLoading(false);
       }
     };
     checkUser();
@@ -177,17 +201,13 @@ export default function Home() {
       if (res.ok) {
         setIsLoggedIn(true);
         setCurrentUser(data.user);
+        localStorage.setItem(AUTH_UI_CACHE_KEY, JSON.stringify(data.user));
         fetchTrke(); 
       } else {
         setLoginError(data.message || "Greška pri logovanju.");
       }
     } catch (err) { setLoginError("Greška pri logovanju."); }
     finally { setLoginLoading(false); }
-  };
-
-  const handleLogout = () => {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => null);
-    window.location.reload();
   };
 
   const handleMapClick = (lat: number, lng: number) => {
@@ -233,6 +253,19 @@ export default function Home() {
       }
     } catch (err) { setRaceFormError("Server greška."); }
   };
+
+  if (authLoading) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+        <div className="glass-card max-w-sm w-full text-center">
+          <p className="text-sm font-semibold">Učitavanje...</p>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-white/10">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-linear-to-r from-blue-500 to-cyan-400" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="h-screen flex flex-col overflow-hidden bg-linear-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
@@ -369,17 +402,6 @@ export default function Home() {
                 </div>
               )}
             </>
-          )}
-
-          {isLoggedIn && (
-            <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
-              <Button
-                label={`👤 ${currentUser?.ime}`}
-                variant="secondary"
-                onClick={() => window.location.href = '/profile'}
-              />
-              <Button label="Odjavi se" variant="danger" onClick={handleLogout} />
-            </div>
           )}
 
           {showNewRaceForm && (

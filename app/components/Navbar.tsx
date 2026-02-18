@@ -4,15 +4,19 @@ import Button from './Button';
 import Link from 'next/link';
 import Image from 'next/image';
 import logoGif from '../images/logo3.gif'; 
+import profileIcon from '../images/Profile.png';
+import whiteProfileIcon from '../images/whiteProfile.png';
 
 interface NavbarProps {
-  currentUser?: { ime: string } | null;
+  currentUser?: { ime?: string; slikaUrl?: string | null } | null;
 }
 
 
 export default function Navbar({ currentUser }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const userIcon = theme === 'dark' ? whiteProfileIcon : profileIcon;
 
   useEffect(() => {
     const stored = localStorage.getItem('theme');
@@ -34,9 +38,19 @@ export default function Navbar({ currentUser }: NavbarProps) {
     window.dispatchEvent(new Event('theme-change'));
   }, [theme]);
 
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      localStorage.removeItem('auth_ui_cache');
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } finally {
+      window.location.href = '/';
+    }
+  };
+
 
   return (
-    <nav className="relative bg-linear-to-r from-white via-slate-50 to-blue-50/80 dark:to-slate-950 dark:via-slate-900 dark:from-indigo-950 border-b border-blue-100/80 dark:border-white/10 shadow-[0_8px_24px_rgba(15,23,42,0.08)] py-2 md:px-12">
+    <nav className="relative bg-linear-to-r from-white  via-slate-50  to-blue-50/80 dark:to-slate-950 dark:via-slate-900 dark:from-indigo-950 border-b border-blue-100/80 dark:border-white/10 shadow-[0_8px_24px_rgba(15,23,42,0.08)] py-2 md:px-12">
       <div className="max-w-9xl mx-auto flex items-center gap-4">
        
         <Link href="/">
@@ -70,6 +84,32 @@ export default function Navbar({ currentUser }: NavbarProps) {
                <Link href="/register" className="hidden md:block">
                   <Button label="Registracija" variant="primary" onClick={() => {}} />
                </Link>
+            </div>
+          )}
+          {currentUser && (
+            <div className="hidden md:flex items-center gap-2">
+              <Link href="/profile">
+                <Button
+                  label={`${currentUser.ime ?? "Nalog"}`}
+                  variant="glass"
+                  leftSlot={
+                    <Image
+                      src={userIcon}
+                      alt="Profile icon"
+                      width={18}
+                      height={18}
+                      className="rounded-full object-cover"
+                    />
+                  }
+                  onClick={() => {}}
+                />
+              </Link>
+              <Button
+                label={loggingOut ? 'Odjavljivanje...' : 'Odjavi se'}
+                variant="danger"
+                onClick={handleLogout}
+                disabled={loggingOut}
+              />
             </div>
           )}
 
@@ -119,6 +159,32 @@ export default function Navbar({ currentUser }: NavbarProps) {
                 <Link href="/register">
                   <Button label="Registracija" variant="primary" onClick={() => {}} />
                 </Link>
+              </div>
+            )}
+            {currentUser && (
+              <div className="flex flex-col gap-2">
+                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                  <Button
+                    label={`${currentUser.ime ?? "Nalog"}`}
+                    variant="secondary"
+                    leftSlot={
+                      <Image
+                        src={userIcon}
+                        alt="Profile icon"
+                        width={18}
+                        height={18}
+                        className="rounded-full object-cover"
+                      />
+                    }
+                    onClick={() => {}}
+                  />
+                </Link>
+                <Button
+                  label={loggingOut ? 'Odjavljivanje...' : 'Odjavi se'}
+                  variant="danger"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                />
               </div>
             )}
           </div>
