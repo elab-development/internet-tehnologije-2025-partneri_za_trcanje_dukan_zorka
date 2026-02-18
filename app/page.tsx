@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import Input from './components/Input';
 import Button from './components/Button';
+import BlurText from './components/BlurText';
 import dynamic from 'next/dynamic';
 
 const Map = dynamic(() => import('./components/Map'), { 
@@ -52,6 +53,10 @@ export default function Home() {
     minDistance: '',
     fromDate: '',
   });
+
+  const handleHeroAnimationComplete = () => {
+    console.log('BlurText animation completed.');
+  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -240,7 +245,14 @@ export default function Home() {
           <div className="w-full md:w-1/3 p-6 md:p-10 z-40 flex flex-col justify-center h-full absolute md:relative">
             <div className="glass-card animate-fade-in">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Partneri za trčanje</p>
-              <h1 className="text-3xl font-black mt-3">Uđi u ritam.</h1>
+              <BlurText
+                text="Uđi u ritam."
+                delay={200}
+                animateBy="words"
+                direction="top"
+                onAnimationComplete={handleHeroAnimationComplete}
+                className="text-3xl font-black mt-3"
+              />
               <p className="text-slate-600 dark:text-slate-300 mt-2">
                 Prijavi se i otključaj mapu trka, prijave i organizaciju događaja.
               </p>
