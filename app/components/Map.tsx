@@ -198,6 +198,47 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         const isOlderThanWeek = now - startMs > sevenDaysMs;
         if (isOlderThanWeek) return null;
 
+        const userParticipation = trka.ucesnici?.find(
+          (u: { korisnikId: number; status: 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' }) =>
+            u.korisnikId === currentUser?.id
+        );
+
+        const joinState = (() => {
+          if (isPast) {
+            return {
+              label: 'Trka završena',
+              disabled: true,
+              className: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            };
+          }
+          if (!userParticipation) {
+            return {
+              label: 'Pridruži se +',
+              disabled: false,
+              className: 'bg-green-500 hover:bg-green-600 text-white'
+            };
+          }
+          if (userParticipation.status === 'NA_CEKANJU') {
+            return {
+              label: 'Na čekanju',
+              disabled: true,
+              className: 'bg-amber-300 text-amber-900 cursor-not-allowed'
+            };
+          }
+          if (userParticipation.status === 'PRIHVACENO') {
+            return {
+              label: 'Prijavljen',
+              disabled: true,
+              className: 'bg-blue-400 text-blue-950 cursor-not-allowed'
+            };
+          }
+          return {
+            label: 'Odbijen',
+            disabled: true,
+            className: 'bg-red-300 text-red-900 cursor-not-allowed'
+          };
+        })();
+
         return (
         <Marker
           key={trka.id}
@@ -225,16 +266,12 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 </p>
               </div>
 
-              <button 
-                onClick={() => !isPast && handleJoin(trka.id)}
-                disabled={isPast}
-                className={`px-4 py-2 rounded-full text-sm font-bold transition w-full mt-1 ${
-                  isPast
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600 text-white'
-                }`}
+              <button
+                onClick={() => !joinState.disabled && handleJoin(trka.id)}
+                disabled={joinState.disabled}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition w-full mt-1 ${joinState.className}`}
               >
-                {isPast ? 'Trka završena' : 'Pridruži se +'}
+                {joinState.label}
               </button>
             </div>
           </Popup>

@@ -22,7 +22,13 @@ export async function GET() {
         organizator: {
           select: { id: true, imePrezime: true, email: true, slikaUrl: true, bio: true }
         },
-        ucesnici: { select: { id: true } }
+        ucesnici: {
+          select: {
+            id: true,
+            korisnikId: true,
+            status: true
+          }
+        }
       }
     });
 
