@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import RacePreviewCard from '../components/RacePreviewCard';
 
 type User = {
   id: number;
@@ -12,6 +14,18 @@ type User = {
 type Race = {
   id: number;
   naziv: string;
+  vremePocetka: string;
+  planiranaDistancaKm: number;
+  status: string;
+  tezina?: string | null;
+  opis?: string | null;
+  organizator: {
+    id: number;
+    imePrezime: string;
+  };
+  _count: {
+    ucesnici: number;
+  };
 };
 
 type PendingDelete =
@@ -30,6 +44,7 @@ export default function AdminPanel() {
   const [confirmText, setConfirmText] = useState('');
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ ime: string } | null>(null);
+  const [selectedRace, setSelectedRace] = useState<Race | null>(null);
   
   useEffect(() => {
     const load = async () => {
@@ -50,7 +65,7 @@ export default function AdminPanel() {
       }
     };
     load();
-  }, []);
+  }, [router]);
 
   const fetchData = async () => {
     try {
@@ -154,7 +169,12 @@ export default function AdminPanel() {
               {!isLoading && users.map((u) => (
                 <div key={u.id} className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-slate-50 hover:translate-x-1 dark:border-white/10 dark:hover:bg-white/5">
                   <span className="text-slate-800 dark:text-slate-100">
-                    {u.imePrezime}{' '}
+                    <Link
+                      href={`/users/${u.id}`}
+                      className="font-semibold text-blue-700 hover:underline dark:text-blue-300"
+                    >
+                      {u.imePrezime}
+                    </Link>{' '}
                     <span className="text-xs text-slate-500 dark:text-slate-400">({u.uloga})</span>
                   </span>
                   {u.uloga !== 'ADMIN' && (
@@ -191,13 +211,26 @@ export default function AdminPanel() {
               )}
               {!isLoading && races.map((r) => (
                 <div key={r.id} className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-slate-50 hover:translate-x-1 dark:border-white/10 dark:hover:bg-white/5">
-                  <span className="text-slate-800 dark:text-slate-100">{r.naziv}</span>
-                  <button
-                    onClick={() => openDelete({ kind: 'race', id: r.id, label: r.naziv })}
-                    className="text-red-300 hover:text-red-200 font-semibold transition"
-                  >
-                    Obriši
-                  </button>
+                  <div className="min-w-0">
+                    <p className="truncate text-slate-900 dark:text-slate-100 font-semibold">{r.naziv}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {new Date(r.vremePocetka).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      onClick={() => setSelectedRace(r)}
+                      className="text-blue-600 hover:text-blue-500 dark:text-blue-300 dark:hover:text-blue-200 text-sm font-semibold transition"
+                    >
+                      Detalji
+                    </button>
+                    <button
+                      onClick={() => openDelete({ kind: 'race', id: r.id, label: r.naziv })}
+                      className="text-red-300 hover:text-red-200 font-semibold transition"
+                    >
+                      Obriši
+                    </button>
+                  </div>
                 </div>
               ))}
               {!isLoading && races.length === 0 && (
@@ -210,7 +243,7 @@ export default function AdminPanel() {
 
       {pendingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 backdrop-blur p-6 shadow-2xl animate-pop-in dark:border-white/10 dark:bg-slate-950/90">
+          <div className="w-full max-w-md rounded-2xl border-2 border-slate-300 bg-white/95 backdrop-blur p-6 shadow-2xl animate-pop-in dark:border-white/10 dark:bg-slate-950/90">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Potvrda brisanja</h3>
             <p className="text-sm text-slate-300 mt-2">
               {pendingDelete.kind === 'user'
@@ -232,7 +265,7 @@ export default function AdminPanel() {
                 <input
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-red-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-red-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                   placeholder="OBRISI"
                 />
               </div>
@@ -240,7 +273,7 @@ export default function AdminPanel() {
             <div className="mt-6 flex items-center justify-end gap-2">
               <button
                 onClick={closeDelete}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:border-slate-300 dark:border-white/10 dark:text-slate-200 dark:hover:border-white/30"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:border-slate-400 dark:border-white/10 dark:text-slate-200 dark:hover:border-white/30"
               >
                 Odustani
               </button>
@@ -255,6 +288,45 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
+
+      {selectedRace && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSelectedRace(null)}
+          />
+          <div className="absolute left-1/2 top-1/2 w-[92%] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border-2 border-slate-300 bg-white/95 p-6 shadow-2xl dark:border-white/10 dark:bg-slate-950/90">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detalji trke</h3>
+              <button
+                onClick={() => setSelectedRace(null)}
+                className="text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <RacePreviewCard
+              naziv={selectedRace.naziv}
+              vremePocetka={selectedRace.vremePocetka}
+              planiranaDistancaKm={selectedRace.planiranaDistancaKm}
+              organizatorSlot={
+                <Link
+                  href={`/users/${selectedRace.organizator.id}`}
+                  className="font-semibold text-blue-700 hover:underline dark:text-blue-300"
+                >
+                  {selectedRace.organizator.imePrezime}
+                </Link>
+              }
+              brojPrijava={selectedRace._count.ucesnici}
+              status={selectedRace.status}
+              tezina={selectedRace.tezina}
+              opis={selectedRace.opis || 'Trka nema dodatni opis.'}
+            />
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(10px); }

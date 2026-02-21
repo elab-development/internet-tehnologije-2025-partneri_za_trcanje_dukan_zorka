@@ -26,10 +26,14 @@ export async function GET(
             id: true,
             naziv: true,
             vremePocetka: true,
-            planiranaDistancaKm: true
+            planiranaDistancaKm: true,
+            status: true,
+            tezina: true,
+            opis: true,
+            _count: { select: { ucesnici: true } }
           },
           orderBy: { vremePocetka: 'desc' },
-          take: 5
+          take: 10
         }
       }
     });

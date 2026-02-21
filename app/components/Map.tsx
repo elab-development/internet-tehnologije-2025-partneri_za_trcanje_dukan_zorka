@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import RacePreviewCard from './RacePreviewCard';
 import blackIconImg from '../images/icon.png';
 import blueIconImg from '../images/blueIcon.png';
 import blackFinishImg from '../images/black-finish.png';
@@ -153,6 +154,10 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
 
   const now = Date.now();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const mapThemeClass = isDarkMode ? 'map-theme-dark' : 'map-theme-light';
+  const miniProfileModalClass = isDarkMode
+    ? 'w-full max-w-sm rounded-2xl border border-slate-600/70 bg-slate-900/90 backdrop-blur-xl p-6 shadow-2xl text-slate-100 relative'
+    : 'w-full max-w-sm rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl p-6 shadow-2xl text-gray-700 relative';
 
   return (
     <div className="relative h-full w-full">
@@ -164,7 +169,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         zoomControl={true}
         scrollWheelZoom={true}
         doubleClickZoom={true}
-        className="map-root"
+        className={`map-root ${mapThemeClass}`}
       >
         {isDarkMode ? (
           <TileLayer
@@ -208,34 +213,44 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
             return {
               label: 'Trka završena',
               disabled: true,
-              className: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              className: isDarkMode
+                ? 'bg-slate-700 text-slate-300 border border-slate-500/80 cursor-not-allowed'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             };
           }
           if (!userParticipation) {
             return {
               label: 'Pridruži se +',
               disabled: false,
-              className: 'bg-green-500 hover:bg-green-600 text-white'
+              className: isDarkMode
+                ? 'bg-emerald-700 hover:bg-emerald-600 border border-emerald-500/60 text-white'
+                : 'bg-green-500 hover:bg-green-600 text-white'
             };
           }
           if (userParticipation.status === 'NA_CEKANJU') {
             return {
               label: 'Na čekanju',
               disabled: true,
-              className: 'bg-amber-300 text-amber-900 cursor-not-allowed'
+              className: isDarkMode
+                ? 'bg-amber-700/70 text-amber-100 border border-amber-500/60 cursor-not-allowed'
+                : 'bg-amber-300 text-amber-900 cursor-not-allowed'
             };
           }
           if (userParticipation.status === 'PRIHVACENO') {
             return {
               label: 'Prijavljen',
               disabled: true,
-              className: 'bg-blue-400 text-blue-950 cursor-not-allowed'
+              className: isDarkMode
+                ? 'bg-blue-700/70 text-blue-100 border border-blue-500/60 cursor-not-allowed'
+                : 'bg-blue-400 text-blue-950 cursor-not-allowed'
             };
           }
           return {
             label: 'Odbijen',
             disabled: true,
-            className: 'bg-red-300 text-red-900 cursor-not-allowed'
+            className: isDarkMode
+              ? 'bg-rose-700/70 text-rose-100 border border-rose-500/60 cursor-not-allowed'
+              : 'bg-red-300 text-red-900 cursor-not-allowed'
           };
         })();
 
@@ -245,26 +260,28 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
           position={[trka.lokacijaLat, trka.lokacijaLng]}
           icon={isPast ? finishIcon : raceIcon}
         >
-          <Popup>
-            <div className="text-center min-w-150px glass-popup">
-              <h3 className="font-bold text-lg text-blue-600">{trka.naziv}</h3>
-              <div className="text-sm text-gray-600 my-2">
-                <p>📅 {new Date(trka.vremePocetka).toLocaleDateString()} u {new Date(trka.vremePocetka).toLocaleTimeString().slice(0,5)}h</p>
-                <p>📏 Distanca: {trka.planiranaDistancaKm} km</p>
-                <p>
-                  👤 Org:{' '}
+          <Popup maxWidth={420} minWidth={320} className="race-popup">
+            <div className="glass-popup w-[320px] max-w-[78vw]">
+              <RacePreviewCard
+                naziv={trka.naziv}
+                vremePocetka={trka.vremePocetka}
+                planiranaDistancaKm={trka.planiranaDistancaKm}
+                organizatorIme={trka.organizator?.imePrezime || 'Nepoznato'}
+                organizatorSlot={
                   <button
                     onClick={() => openProfile(trka.organizator?.id ?? trka.organizatorId)}
-                    className="text-blue-600 hover:underline font-semibold"
+                    className="font-semibold text-blue-600 hover:underline"
                   >
                     {trka.organizator?.imePrezime || 'Nepoznato'}
                   </button>
-                </p>
-                
-                <p className="font-semibold mt-1">
-                  Prijavljeno: {trka.ucesnici ? trka.ucesnici.length : 0}
-                </p>
-              </div>
+                }
+                brojPrijava={trka.ucesnici ? trka.ucesnici.length : 0}
+                status={trka.status}
+                tezina={trka.tezina}
+                compact
+                theme={isDarkMode ? 'dark' : 'light'}
+                className="bg-transparent p-0 text-left shadow-none"
+              />
 
               <button
                 onClick={() => !joinState.disabled && handleJoin(trka.id)}
@@ -291,7 +308,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
           }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl p-6 shadow-2xl text-gray-700 relative"
+            className={miniProfileModalClass}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -301,13 +318,15 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
               e.stopPropagation();
             }}
           >
-            <button
+              <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setProfileOpen(false);
               }}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              className={`absolute top-3 right-3 ${
+                isDarkMode ? 'text-slate-300 hover:text-white' : 'text-gray-500 hover:text-gray-800'
+              }`}
               aria-label="Zatvori"
             >
               ✕
@@ -315,14 +334,14 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
 
             {profileLoading && (
               <div className="space-y-3">
-                <div className="h-12 w-12 rounded-full bg-gray-200 animate-pulse" />
-                <div className="h-4 w-2/3 bg-gray-200 animate-pulse rounded" />
-                <div className="h-3 w-full bg-gray-200 animate-pulse rounded" />
+                <div className={`h-12 w-12 rounded-full animate-pulse ${isDarkMode ? 'bg-slate-700' : 'bg-gray-200'}`} />
+                <div className={`h-4 w-2/3 animate-pulse rounded ${isDarkMode ? 'bg-slate-700' : 'bg-gray-200'}`} />
+                <div className={`h-3 w-full animate-pulse rounded ${isDarkMode ? 'bg-slate-700' : 'bg-gray-200'}`} />
               </div>
             )}
 
             {!profileLoading && profileError && (
-              <div className="text-sm text-red-600">{profileError}</div>
+              <div className={`text-sm ${isDarkMode ? 'text-red-300' : 'text-red-600'}`}>{profileError}</div>
             )}
 
             {!profileLoading && profileData && (
@@ -340,18 +359,26 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 )}
                 <div>
                   <h3 className="text-lg font-bold">{profileData.imePrezime}</h3>
-                  <p className="text-xs text-gray-500">{profileData.uloga}</p>
+                  <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>{profileData.uloga}</p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className={`text-sm ${isDarkMode ? 'text-slate-200' : 'text-gray-600'}`}>
                   {profileData.bio || 'Korisnik nema biografiju.'}
                 </p>
                 <div className="w-full grid grid-cols-2 gap-3">
-                  <div className="rounded-lg bg-white/70 border border-white/80 py-2">
-                    <p className="text-xs text-gray-500">Organizuje</p>
+                  <div
+                    className={`rounded-lg py-2 ${
+                      isDarkMode ? 'bg-white/10 border border-white/20' : 'bg-white/70 border border-white/80'
+                    }`}
+                  >
+                    <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>Organizuje</p>
                     <p className="font-bold">{profileData.organizovaneTrkeCount}</p>
                   </div>
-                  <div className="rounded-lg bg-white/70 border border-white/80 py-2">
-                    <p className="text-xs text-gray-500">Ukupno km</p>
+                  <div
+                    className={`rounded-lg py-2 ${
+                      isDarkMode ? 'bg-white/10 border border-white/20' : 'bg-white/70 border border-white/80'
+                    }`}
+                  >
+                    <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>Ukupno km</p>
                     <p className="font-bold">{profileData.ukupnoPredjeniKm ?? 0}</p>
                   </div>
                 </div>
@@ -366,26 +393,6 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
           </div>
         </div>
       )}
-      <style jsx global>{`
-        .leaflet-popup-content-wrapper {
-          background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(16px);
-          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-          border-radius: 16px;
-        }
-        .leaflet-popup-tip {
-          background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(16px);
-        }
-        .leaflet-popup-content {
-          margin: 12px 14px;
-        }
-        .glass-popup {
-          text-align: center;
-        }
-      `}</style>
       </MapContainer>
     </div>
   );

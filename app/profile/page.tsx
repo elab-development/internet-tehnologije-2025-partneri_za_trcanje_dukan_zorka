@@ -3,7 +3,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import RacePreviewCard from '../components/RacePreviewCard';
 import { useRouter } from 'next/navigation';
+
+type RaceDetails = {
+  naziv: string;
+  vremePocetka: string;
+  planiranaDistancaKm?: number;
+  organizatorIme?: string;
+  brojPrijava?: number;
+  status?: string;
+  tezina?: string;
+  opis?: string;
+};
 
 export default function Profile() {
   const router = useRouter();
@@ -19,6 +31,7 @@ export default function Profile() {
   const [commentData, setCommentData] = useState({ ocena: '5', tekst: '' });
   const [commentError, setCommentError] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [selectedRaceDetails, setSelectedRaceDetails] = useState<RaceDetails | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -354,7 +367,7 @@ export default function Profile() {
                     className="h-20 w-20 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-20 w-20 rounded-full bg-blue-200/20 border border-white/30 flex items-center justify-center text-3xl">
+                  <div className="h-20 w-20 rounded-full bg-blue-200/20 border border-slate-300/80 dark:border-white/30 flex items-center justify-center text-3xl">
                     👤
                   </div>
                 )}
@@ -367,7 +380,7 @@ export default function Profile() {
             </div>
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">{user?.imePrezime}</h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{user?.imePrezime}</h1>
                 <span className="glass-chip">{user?.uloga}</span>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-300">{user?.email}</p>
@@ -404,7 +417,7 @@ export default function Profile() {
                 ) : (
                   <div className="mt-2 space-y-3">
                     <textarea
-                      className="w-full rounded-md border border-white/40 bg-white/80 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-400"
+                      className="w-full rounded-md border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       rows={3}
                       value={bioText}
                       onChange={(e) => setBioText(e.target.value)}
@@ -445,7 +458,7 @@ export default function Profile() {
               {user?.pendingRequests?.map((req: any) => (
                 <div key={req.id} className="glass-card p-5 flex flex-col gap-3">
                   <div>
-                    <h3 className="font-bold text-lg text-white">{req.korisnik.imePrezime}</h3>
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">{req.korisnik.imePrezime}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-300">🏁 {req.trka.naziv}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       📅 {new Date(req.trka.vremePocetka).toLocaleDateString()} • 📏 {req.trka.planiranaDistancaKm} km
@@ -476,24 +489,38 @@ export default function Profile() {
                 <div className="space-y-4">
                   {user?.ucesca.map((ucesce: any) => (
                     <div key={ucesce.id} className="glass-card p-5 flex flex-col gap-3">
-                    <div className="flex justify-between items-start gap-3">
-                      <div>
-                        <h3 className="font-bold text-lg text-white">{ucesce.trka.naziv}</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">
-                          📅 {new Date(ucesce.trka.vremePocetka).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">
-                          📍 {ucesce.trka.planiranaDistancaKm} km
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Status: {ucesce.status}</p>
-                      </div>
-                      <button
-                        onClick={() => handleLeave(ucesce.trka.id)}
-                        className="text-red-300 text-sm hover:underline font-medium"
-                      >
-                        Otkaži
-                      </button>
-                    </div>
+                      <RacePreviewCard
+                        naziv={ucesce.trka.naziv}
+                        vremePocetka={ucesce.trka.vremePocetka}
+                        planiranaDistancaKm={ucesce.trka.planiranaDistancaKm}
+                        organizatorIme={ucesce.trka.organizator?.imePrezime}
+                        brojPrijava={ucesce.trka._count?.ucesnici}
+                        status={ucesce.status}
+                        tezina={ucesce.trka.tezina}
+                        compact
+                        minimal
+                        rightAction={
+                          <button
+                            onClick={() => handleLeave(ucesce.trka.id)}
+                            className="text-red-500 dark:text-red-300 text-sm hover:underline font-medium"
+                          >
+                            Otkaži
+                          </button>
+                        }
+                        onOpenDetails={() =>
+                          setSelectedRaceDetails({
+                            naziv: ucesce.trka.naziv,
+                            vremePocetka: ucesce.trka.vremePocetka,
+                            planiranaDistancaKm: ucesce.trka.planiranaDistancaKm,
+                            organizatorIme: ucesce.trka.organizator?.imePrezime,
+                            brojPrijava: ucesce.trka._count?.ucesnici,
+                            status: ucesce.status,
+                            tezina: ucesce.trka.tezina,
+                            opis: ucesce.trka.opis
+                          })
+                        }
+                        detailsContainerClassName="mt-5"
+                      />
 
                     {ucesce.rezultat && (
                       <div className="glass-subcard text-sm">
@@ -512,13 +539,13 @@ export default function Profile() {
                             <div className="glass-subcard">
                               <div className="grid grid-cols-2 gap-2">
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+                                  className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Pređeno km"
                                   value={resultData.predjeniKm}
                                   onChange={(e) => setResultData({ ...resultData, predjeniKm: e.target.value })}
                                 />
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+                                  className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Vreme (HH:MM:SS)"
                                   value={resultData.vremeTrajanja}
                                   onChange={(e) => setResultData({ ...resultData, vremeTrajanja: e.target.value })}
@@ -567,7 +594,7 @@ export default function Profile() {
                             <div className="glass-subcard">
                               <div className="grid grid-cols-2 gap-2">
                                 <select
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+                                  className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   value={commentData.ocena}
                                   onChange={(e) => setCommentData({ ...commentData, ocena: e.target.value })}
                                 >
@@ -578,7 +605,7 @@ export default function Profile() {
                                   <option value="1">1 - Jako loše</option>
                                 </select>
                                 <input
-                                  className="w-full rounded-md border border-white/30 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+                                  className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   placeholder="Komentar"
                                   value={commentData.tekst}
                                   onChange={(e) => setCommentData({ ...commentData, tekst: e.target.value })}
@@ -611,15 +638,37 @@ export default function Profile() {
                 <div className="space-y-4">
                   {user?.organizovaneTrke.map((trka: any) => (
                     <div key={trka.id} className="glass-card p-5 relative">
-                      <div className="absolute top-4 right-4">
-                        <Button
-                          label="Obriši"
-                          variant="danger"
-                          onClick={() => handleDeleteRace(trka.id)}
-                        />
-                      </div>
-                      <h3 className="font-bold text-lg text-white">{trka.naziv}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-300">Status: {trka.status}</p>
+                      <RacePreviewCard
+                        naziv={trka.naziv}
+                        vremePocetka={trka.vremePocetka}
+                        planiranaDistancaKm={trka.planiranaDistancaKm}
+                        organizatorIme={user?.imePrezime}
+                        brojPrijava={trka._count?.ucesnici}
+                        status={trka.status}
+                        tezina={trka.tezina}
+                        compact
+                        minimal
+                        rightAction={
+                          <Button
+                            label="Obriši"
+                            variant="danger"
+                            onClick={() => handleDeleteRace(trka.id)}
+                          />
+                        }
+                        onOpenDetails={() =>
+                          setSelectedRaceDetails({
+                            naziv: trka.naziv,
+                            vremePocetka: trka.vremePocetka,
+                            planiranaDistancaKm: trka.planiranaDistancaKm,
+                            organizatorIme: user?.imePrezime,
+                            brojPrijava: trka._count?.ucesnici,
+                            status: trka.status,
+                            tezina: trka.tezina,
+                            opis: trka.opis
+                          })
+                        }
+                        detailsContainerClassName="mt-5"
+                      />
                     </div>
                   ))}
                 </div>
@@ -628,6 +677,38 @@ export default function Profile() {
           </div>
         </section>
       </div>
+
+      {selectedRaceDetails && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSelectedRaceDetails(null)}
+          />
+          <div className="absolute left-1/2 top-1/2 w-[92%] max-w-xl -translate-x-1/2 -translate-y-1/2 glass-card p-6">
+            <div className="flex items-center justify-between ">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detalji trke</h3>
+              <button
+                onClick={() => setSelectedRaceDetails(null)}
+                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mt-4">
+              <RacePreviewCard
+                naziv={selectedRaceDetails.naziv}
+                vremePocetka={selectedRaceDetails.vremePocetka}
+                planiranaDistancaKm={selectedRaceDetails.planiranaDistancaKm}
+                organizatorIme={selectedRaceDetails.organizatorIme}
+                brojPrijava={selectedRaceDetails.brojPrijava}
+                status={selectedRaceDetails.status}
+                tezina={selectedRaceDetails.tezina}
+                opis={selectedRaceDetails.opis}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={() => setNotificationsOpen(true)}
@@ -649,7 +730,7 @@ export default function Profile() {
           />
           <aside className="absolute right-0 top-0 h-full w-full max-w-md glass-panel p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">Obaveštenja</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Obaveštenja</h3>
               <button
                 onClick={() => setNotificationsOpen(false)}
                 className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
@@ -688,7 +769,7 @@ export default function Profile() {
         }
         .glass-card {
           background: rgba(255, 255, 255, 0.65);
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          border: 2px solid rgba(203, 213, 225, 0.9);
           box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
           backdrop-filter: blur(18px);
           border-radius: 20px;
@@ -709,7 +790,7 @@ export default function Profile() {
         }
         .glass-subcard {
           background: rgba(255, 255, 255, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.9);
+          border: 2px solid rgba(203, 213, 225, 0.85);
           border-radius: 14px;
           padding: 12px;
           color: #0f172a;
@@ -736,7 +817,7 @@ export default function Profile() {
           border-radius: 14px;
           padding: 10px 12px;
           background: rgba(255, 255, 255, 0.75);
-          border: 1px solid rgba(255, 255, 255, 0.9);
+          border: 2px solid rgba(203, 213, 225, 0.85);
         }
         .dark .glass-stat {
           background: rgba(255, 255, 255, 0.08);

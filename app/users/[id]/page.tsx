@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
+import RacePreviewCard from '../../components/RacePreviewCard';
 
 type PublicUser = {
   id: number;
@@ -17,6 +18,10 @@ type PublicUser = {
     naziv: string;
     vremePocetka: string;
     planiranaDistancaKm: number;
+    status: string;
+    tezina?: string | null;
+    opis?: string | null;
+    _count: { ucesnici: number };
   }[];
   avgOcena: number | null;
   brojOcena: number;
@@ -37,6 +42,7 @@ export default function PublicProfile() {
   const [data, setData] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -144,12 +150,19 @@ export default function PublicProfile() {
                 ) : (
                   <div className="mt-4 space-y-3">
                     {data.organizovaneTrke.map((t) => (
-                      <div key={t.id} className="rounded-lg bg-white/70 border border-white/80 p-3 dark:bg-slate-900/60 dark:border-white/10">
-                        <p className="font-semibold">{t.naziv}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          📅 {new Date(t.vremePocetka).toLocaleDateString()} • 📏 {t.planiranaDistancaKm} km
-                        </p>
-                      </div>
+                      <RacePreviewCard
+                        key={t.id}
+                        naziv={t.naziv}
+                        vremePocetka={t.vremePocetka}
+                        planiranaDistancaKm={t.planiranaDistancaKm}
+                        organizatorIme={data.imePrezime}
+                        brojPrijava={t._count?.ucesnici}
+                        status={t.status}
+                        tezina={t.tezina}
+                        compact
+                        minimal
+                        onOpenDetails={() => setSelectedRaceId(t.id)}
+                      />
                     ))}
                   </div>
                 )}
@@ -178,6 +191,44 @@ export default function PublicProfile() {
           </>
         )}
       </div>
+
+      {!loading && data && selectedRaceId && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSelectedRaceId(null)}
+          />
+          <div className="absolute left-1/2 top-1/2 w-[92%] max-w-xl -translate-x-1/2 -translate-y-1/2 glass-card p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Detalji trke</h3>
+              <button
+                onClick={() => setSelectedRaceId(null)}
+                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mt-4">
+              {(() => {
+                const trka = data.organizovaneTrke.find((r) => r.id === selectedRaceId);
+                if (!trka) return null;
+                return (
+                  <RacePreviewCard
+                    naziv={trka.naziv}
+                    vremePocetka={trka.vremePocetka}
+                    planiranaDistancaKm={trka.planiranaDistancaKm}
+                    organizatorIme={data.imePrezime}
+                    brojPrijava={trka._count?.ucesnici}
+                    status={trka.status}
+                    tezina={trka.tezina}
+                    opis={trka.opis}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .glass-card {

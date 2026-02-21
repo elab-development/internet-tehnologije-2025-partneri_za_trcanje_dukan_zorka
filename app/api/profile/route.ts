@@ -15,12 +15,21 @@ export async function POST(req: Request) {
         ucesca: {
           include: {
             trka: { 
-               include: { organizator: true }
+               include: {
+                 organizator: true,
+                 _count: { select: { ucesnici: true } }
+               }
             },
             rezultat: true
           }
         },
-        organizovaneTrke: true,
+        organizovaneTrke: {
+          include: {
+            organizator: { select: { id: true, imePrezime: true } },
+            _count: { select: { ucesnici: true } }
+          },
+          orderBy: { vremePocetka: 'desc' }
+        },
         komentari: {
           select: { id: true, trkaId: true, tekst: true, ocena: true, createdAt: true }
         },
