@@ -204,10 +204,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         const isOlderThanWeek = now - startMs > sevenDaysMs;
         if (isOlderThanWeek) return null;
 
-        const userParticipation = trka.ucesnici?.find(
-          (u: { korisnikId: number; status: 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' }) =>
-            u.korisnikId === currentUser?.id
-        );
+        const userParticipationStatus = trka.mojStatusPrijave as 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' | null;
 
         const joinState = (() => {
           if (isPast) {
@@ -219,7 +216,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             };
           }
-          if (!userParticipation) {
+          if (!userParticipationStatus) {
             return {
               label: 'Pridruži se +',
               disabled: false,
@@ -228,7 +225,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 : 'bg-green-500 hover:bg-green-600 text-white'
             };
           }
-          if (userParticipation.status === 'NA_CEKANJU') {
+          if (userParticipationStatus === 'NA_CEKANJU') {
             return {
               label: 'Na čekanju',
               disabled: true,
@@ -237,7 +234,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 : 'bg-amber-300 text-amber-900 cursor-not-allowed'
             };
           }
-          if (userParticipation.status === 'PRIHVACENO') {
+          if (userParticipationStatus === 'PRIHVACENO') {
             return {
               label: 'Prijavljen',
               disabled: true,
@@ -276,7 +273,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                     {trka.organizator?.imePrezime || 'Nepoznato'}
                   </button>
                 }
-                brojPrijava={trka.ucesnici ? trka.ucesnici.length : 0}
+                brojPrijava={trka._count?.ucesnici ?? 0}
                 status={trka.status}
                 tezina={trka.tezina}
                 compact

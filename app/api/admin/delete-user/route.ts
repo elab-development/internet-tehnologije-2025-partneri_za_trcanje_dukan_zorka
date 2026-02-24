@@ -24,6 +24,9 @@ export async function DELETE(req: Request) {
     if (isNaN(id)) {
       return NextResponse.json({ message: 'Nevalidan ID korisnika.' }, { status: 400 });
     }
+    if (id === auth.id) {
+      return NextResponse.json({ message: 'Ne možeš obrisati svoj nalog iz admin panela.' }, { status: 403 });
+    }
 
     const trkeKorisnika = await prisma.trka.findMany({
       where: { organizatorId: id },

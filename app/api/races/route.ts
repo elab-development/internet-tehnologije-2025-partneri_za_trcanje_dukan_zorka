@@ -6,6 +6,8 @@ import { verifyCsrf } from '@/lib/csrf';
 
 export async function GET() {
   try {
+    const auth = await getAuthPayloadFromCookies();
+
     const trke = await prisma.trka.findMany({
       where: {
         status: 'PLANIRANA' 
@@ -21,19 +23,38 @@ export async function GET() {
         tezina: true,
         status: true,
         organizator: {
-          select: { id: true, imePrezime: true, email: true, slikaUrl: true, bio: true }
+          select: { id: true, imePrezime: true, slikaUrl: true, bio: true }
+        },
+        _count: {
+          select: {
+            ucesnici: true
+          }
         },
         ucesnici: {
+          where: auth ? { korisnikId: auth.id } : { korisnikId: -1 },
           select: {
-            id: true,
-            korisnikId: true,
             status: true
           }
         }
       }
     });
 
-    return NextResponse.json(trke, { status: 200 });
+    const response = trke.map((trka) => ({
+      id: trka.id,
+      naziv: trka.naziv,
+      vremePocetka: trka.vremePocetka,
+      lokacijaLat: trka.lokacijaLat,
+      lokacijaLng: trka.lokacijaLng,
+      planiranaDistancaKm: trka.planiranaDistancaKm,
+      organizatorId: trka.organizatorId,
+      tezina: trka.tezina,
+      status: trka.status,
+      organizator: trka.organizator,
+      _count: trka._count,
+      mojStatusPrijave: trka.ucesnici[0]?.status ?? null
+    }));
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Greška pri dohvatanju trka.' }, { status: 500 });
   }
