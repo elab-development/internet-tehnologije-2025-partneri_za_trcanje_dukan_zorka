@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import RacePreviewCard from '../components/RacePreviewCard';
 import { useRouter } from 'next/navigation';
+import { withCsrfHeader } from '@/lib/csrf-client';
 
 type RaceDetails = {
   naziv: string;
@@ -64,7 +65,7 @@ export default function Profile() {
     try {
       const res = await fetch('/api/profile/update', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ bio: bioText }),
         credentials: 'include'
       });
@@ -128,7 +129,7 @@ export default function Profile() {
 
       const saveRes = await fetch('/api/profile/update', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ slikaUrl }),
         credentials: 'include'
       });
@@ -157,7 +158,7 @@ export default function Profile() {
     try {
       const res = await fetch('/api/races/leave', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ trkaId }),
         credentials: 'include'
       });
@@ -179,7 +180,7 @@ export default function Profile() {
     try {
       const res = await fetch('/api/races/delete', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           trkaId: trkaId
         }),
@@ -238,7 +239,7 @@ export default function Profile() {
 
       const res = await fetch('/api/results', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           ucesceId,
           predjeniKm: resultData.predjeniKm,
@@ -275,7 +276,7 @@ export default function Profile() {
 
       const res = await fetch('/api/comments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           trkaId,
           tekst: commentData.tekst,
@@ -300,7 +301,7 @@ export default function Profile() {
     try {
       const res = await fetch('/api/races/requests/approve', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ ucesceId }),
         credentials: 'include'
       });
@@ -320,7 +321,7 @@ export default function Profile() {
     try {
       const res = await fetch('/api/races/requests/reject', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ ucesceId }),
         credentials: 'include'
       });

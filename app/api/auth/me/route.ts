@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthPayloadFromCookies } from '@/lib/auth';
+import { ensureCsrfCookie } from '@/lib/csrf';
 
 export async function GET() {
   try {
@@ -18,13 +19,15 @@ export async function GET() {
       return NextResponse.json({ message: 'Korisnik ne postoji.' }, { status: 404 });
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       id: korisnik.id,
       email: korisnik.email,
       ime: korisnik.imePrezime,
       uloga: korisnik.uloga,
       slikaUrl: korisnik.slikaUrl
     }, { status: 200 });
+    await ensureCsrfCookie(res);
+    return res;
   } catch (error) {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }

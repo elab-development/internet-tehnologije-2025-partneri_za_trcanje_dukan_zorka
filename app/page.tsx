@@ -6,6 +6,7 @@ import Input from './components/Input';
 import Button from './components/Button';
 import BlurText from './components/BlurText';
 import dynamic from 'next/dynamic';
+import { withCsrfHeader } from '@/lib/csrf-client';
 
 const Map = dynamic(() => import('./components/Map'), { 
   ssr: false,
@@ -235,7 +236,7 @@ export default function Home() {
       }
       const res = await fetch('/api/races', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           ...newRaceData
         }),

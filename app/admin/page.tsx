@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import RacePreviewCard from '../components/RacePreviewCard';
+import { withCsrfHeader } from '@/lib/csrf-client';
 
 type User = {
   id: number;
@@ -105,14 +106,14 @@ export default function AdminPanel() {
       if (pendingDelete.kind === 'user') {
         await fetch('/api/admin/delete-user', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ targetUserId: pendingDelete.id }),
           credentials: 'include',
         });
       } else {
         await fetch('/api/races/delete', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ trkaId: pendingDelete.id }),
           credentials: 'include',
         });

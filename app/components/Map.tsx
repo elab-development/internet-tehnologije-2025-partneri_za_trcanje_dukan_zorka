@@ -10,6 +10,7 @@ import blackIconImg from '../images/icon.png';
 import blueIconImg from '../images/blueIcon.png';
 import blackFinishImg from '../images/black-finish.png';
 import blueFinishImg from '../images/blue-finish.png';
+import { withCsrfHeader } from '@/lib/csrf-client';
 
 const getIconUrl = (imgImport: any) => (typeof imgImport === 'string' ? imgImport : imgImport.src);
 
@@ -137,7 +138,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
     try {
       const res = await fetch('/api/races/join', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ trkaId }),
         credentials: 'include'
       });

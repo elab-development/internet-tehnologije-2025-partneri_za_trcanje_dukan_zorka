@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthPayloadFromCookies } from '@/lib/auth';
+import { verifyCsrf } from '@/lib/csrf';
 
 export async function DELETE(req: Request) {
   try {
+    const csrfError = await verifyCsrf(req);
+    if (csrfError) {
+      return csrfError;
+    }
+
     const auth = await getAuthPayloadFromCookies();
     if (!auth) {
       return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });

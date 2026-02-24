@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth';
+import { setCsrfCookie } from '@/lib/csrf';
 
 export async function POST(req: Request) {
   try {
@@ -49,10 +50,11 @@ export async function POST(req: Request) {
     res.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       path: '/',
       maxAge: 60 * 60 * 24 * 7
     });
+    setCsrfCookie(res);
 
     return res;
 

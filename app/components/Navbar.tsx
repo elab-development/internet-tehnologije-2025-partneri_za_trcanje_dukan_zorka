@@ -6,6 +6,7 @@ import Image from 'next/image';
 import logoGif from '../images/logo3.gif'; 
 import profileIcon from '../images/Profile.png';
 import whiteProfileIcon from '../images/whiteProfile.png';
+import { withCsrfHeader } from '@/lib/csrf-client';
 
 interface NavbarProps {
   currentUser?: { ime?: string; slikaUrl?: string | null } | null;
@@ -42,7 +43,11 @@ export default function Navbar({ currentUser }: NavbarProps) {
     try {
       setLoggingOut(true);
       localStorage.removeItem('auth_ui_cache');
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: withCsrfHeader(),
+        credentials: 'include'
+      });
     } finally {
       window.location.href = '/';
     }
