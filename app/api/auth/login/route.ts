@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     
     const korisnik = await prisma.korisnik.findUnique({
-      where: { email }
+      where: { email }// SELECT * FROM korisnik WHERE email = ?
     });
 
     
