@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(komentar, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

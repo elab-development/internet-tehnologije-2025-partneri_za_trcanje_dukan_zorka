@@ -28,7 +28,7 @@ export async function DELETE(req: Request) {
     });
 
     return NextResponse.json({ message: 'Uspešno otkazano.' }, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

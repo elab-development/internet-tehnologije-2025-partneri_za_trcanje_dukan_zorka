@@ -80,8 +80,9 @@ export async function DELETE(req: Request) {
     ]);
 
     return NextResponse.json({ message: 'Korisnik i apsolutno svi povezani podaci obrisani.' });
-  } catch (error: any) {
-    console.error("DETALJNA GREŠKA U TERMINALU:", error);
-    return NextResponse.json({ message: 'Greška pri brisanju: ' + error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('DETALJNA GREŠKA U TERMINALU:', error);
+    const message = error instanceof Error ? error.message : 'Nepoznata greška.';
+    return NextResponse.json({ message: `Greška pri brisanju: ${message}` }, { status: 500 });
   }
 }

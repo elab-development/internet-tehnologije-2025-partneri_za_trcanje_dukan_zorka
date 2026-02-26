@@ -56,7 +56,7 @@ export async function GET() {
     }));
 
     return NextResponse.json(response, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška pri dohvatanju trka.' }, { status: 500 });
   }
 }

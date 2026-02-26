@@ -66,7 +66,7 @@ export async function GET(
       brojOcena: ratingAgg._count.ocena,
       komentari: recentComments
     }, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

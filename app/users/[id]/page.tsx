@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import RacePreviewCard from '../../components/RacePreviewCard';
+import Image from 'next/image';
 
 type PublicUser = {
   id: number;
@@ -103,9 +104,11 @@ export default function PublicProfile() {
           <>
             <section className="glass-card flex flex-col md:flex-row gap-6 items-center">
               {data.slikaUrl ? (
-                <img
+                <Image
                   src={data.slikaUrl}
                   alt={data.imePrezime}
+                  width={96}
+                  height={96}
                   className="h-24 w-24 rounded-full object-cover border border-white/80 shadow dark:border-white/20"
                 />
               ) : (

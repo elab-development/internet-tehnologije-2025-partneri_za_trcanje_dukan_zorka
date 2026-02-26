@@ -28,7 +28,7 @@ export async function GET() {
     }, { status: 200 });
     await ensureCsrfCookie(res);
     return res;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

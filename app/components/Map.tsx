@@ -5,6 +5,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import type { StaticImageData } from 'next/image';
 import RacePreviewCard from './RacePreviewCard';
 import blackIconImg from '../images/icon.png';
 import blueIconImg from '../images/blueIcon.png';
@@ -12,7 +14,40 @@ import blackFinishImg from '../images/black-finish.png';
 import blueFinishImg from '../images/blue-finish.png';
 import { withCsrfHeader } from '@/lib/csrf-client';
 
-const getIconUrl = (imgImport: any) => (typeof imgImport === 'string' ? imgImport : imgImport.src);
+type ParticipationStatus = 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' | null;
+
+type RaceMapItem = {
+  id: number;
+  naziv: string;
+  vremePocetka: string;
+  lokacijaLat: number;
+  lokacijaLng: number;
+  planiranaDistancaKm: number;
+  organizatorId?: number;
+  tezina?: string;
+  status?: string;
+  organizator?: {
+    id?: number;
+    imePrezime?: string;
+    slikaUrl?: string | null;
+    bio?: string | null;
+  } | null;
+  _count?: { ucesnici: number };
+  mojStatusPrijave?: ParticipationStatus;
+};
+
+type PublicProfileData = {
+  id: number;
+  imePrezime: string;
+  slikaUrl?: string | null;
+  uloga: string;
+  bio?: string | null;
+  organizovaneTrkeCount: number;
+  ukupnoPredjeniKm?: number;
+};
+
+const getIconUrl = (imgImport: string | StaticImageData) =>
+  typeof imgImport === 'string' ? imgImport : imgImport.src;
 
 function MapRevalidator({ interactive }: { interactive: boolean }) {
   const map = useMap();
@@ -39,7 +74,7 @@ function MapEvents({ onMapClick }: { onMapClick?: (lat: number, lng: number) => 
 }
 
 interface MapProps {
-  trke?: any[];
+  trke?: RaceMapItem[];
   onMapClick?: (lat: number, lng: number) => void;
   interactive?: boolean;
   draftLocation?: { lat: number; lng: number } | null;
@@ -49,7 +84,7 @@ interface MapProps {
 export default function Map({ trke = [], onMapClick, interactive = true, draftLocation, currentUser }: MapProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<PublicProfileData | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -116,12 +151,12 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
       setProfileLoading(true);
       setProfileError(null);
       const res = await fetch(`/api/users/${numericId}`);
-      const data = await res.json();
+      const data = (await res.json()) as PublicProfileData | { message?: string };
       if (!res.ok) {
-        setProfileError(data.message || 'Greška pri učitavanju profila.');
+        setProfileError(('message' in data && data.message) || 'Greška pri učitavanju profila.');
         setProfileData(null);
       } else {
-        setProfileData(data);
+        setProfileData(data as PublicProfileData);
       }
     } catch {
       setProfileError('Greška pri učitavanju profila.');
@@ -150,7 +185,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         const data = await res.json();
         alert(data.message || "Greška.");
       }
-    } catch (err) { alert("Greška na serveru."); }
+    } catch { alert("Greška na serveru."); }
   };
 
   const now = Date.now();
@@ -345,9 +380,11 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
             {!profileLoading && profileData && (
               <div className="flex flex-col items-center text-center gap-3">
                 {profileData.slikaUrl ? (
-                  <img
+                  <Image
                     src={profileData.slikaUrl}
                     alt={profileData.imePrezime}
+                    width={64}
+                    height={64}
                     className="h-16 w-16 rounded-full object-cover border border-white/80 shadow"
                   />
                 ) : (

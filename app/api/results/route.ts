@@ -69,7 +69,7 @@ export async function PUT(req: Request) {
     });
 
     return NextResponse.json(rezultat, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

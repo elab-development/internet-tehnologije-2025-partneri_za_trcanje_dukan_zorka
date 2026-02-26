@@ -2,11 +2,27 @@
 
 import { useEffect, useState } from 'react';
 
+type SwaggerBundleFn = ((config: {
+  url: string;
+  dom_id: string;
+  deepLinking: boolean;
+  displayRequestDuration: boolean;
+  persistAuthorization: boolean;
+  presets: unknown[];
+  layout: string;
+}) => unknown) & {
+  presets: {
+    apis: unknown;
+  };
+};
+
+type SwaggerBundleGlobal = SwaggerBundleFn | { default: SwaggerBundleFn };
+
 declare global {
   interface Window {
-    SwaggerUIBundle?: any;
-    SwaggerUIStandalonePreset?: any;
-    ui?: any;
+    SwaggerUIBundle?: SwaggerBundleGlobal;
+    SwaggerUIStandalonePreset?: unknown;
+    ui?: unknown;
   }
 }
 
@@ -18,7 +34,7 @@ const loadScript = (src: string) =>
   new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
     if (existing) {
-      if ((existing as any).dataset.loaded === 'true') {
+      if (existing.dataset.loaded === 'true') {
         resolve();
         return;
       }
@@ -31,7 +47,7 @@ const loadScript = (src: string) =>
     script.src = src;
     script.async = true;
     script.onload = () => {
-      (script as any).dataset.loaded = 'true';
+      script.dataset.loaded = 'true';
       resolve();
     };
     script.onerror = () => reject(new Error(`Ne mogu da učitam ${src}`));
@@ -49,7 +65,8 @@ export default function ApiDocsPage() {
         setError(null);
         await Promise.all([loadScript(BUNDLE_SRC), loadScript(PRESET_SRC)]);
 
-        const bundle = window.SwaggerUIBundle?.default ?? window.SwaggerUIBundle;
+        const bundleSource = window.SwaggerUIBundle;
+        const bundle = typeof bundleSource === 'function' ? bundleSource : bundleSource?.default;
         if (typeof bundle !== 'function') {
           throw new Error('SwaggerUIBundle nije pravilno učitan.');
         }

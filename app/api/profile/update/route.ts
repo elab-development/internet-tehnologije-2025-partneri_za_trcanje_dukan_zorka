@@ -31,7 +31,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ message: 'Profil ažuriran!', user: azuriranKorisnik }, { status: 200 });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }

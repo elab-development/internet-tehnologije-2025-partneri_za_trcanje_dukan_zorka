@@ -207,7 +207,7 @@ export default function Home() {
       } else {
         setLoginError(data.message || "Greška pri logovanju.");
       }
-    } catch (err) { setLoginError("Greška pri logovanju."); }
+    } catch { setLoginError("Greška pri logovanju."); }
     finally { setLoginLoading(false); }
   };
 
@@ -252,7 +252,7 @@ export default function Home() {
       } else {
         setRaceFormError("Greška pri kreiranju trke.");
       }
-    } catch (err) { setRaceFormError("Server greška."); }
+    } catch { setRaceFormError("Server greška."); }
   };
 
   if (authLoading) {

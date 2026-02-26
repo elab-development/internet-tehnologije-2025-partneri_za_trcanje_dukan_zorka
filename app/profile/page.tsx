@@ -1,27 +1,84 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import RacePreviewCard from '../components/RacePreviewCard';
 import { useRouter } from 'next/navigation';
 import { withCsrfHeader } from '@/lib/csrf-client';
+import Image from 'next/image';
 
 type RaceDetails = {
   naziv: string;
   vremePocetka: string;
   planiranaDistancaKm?: number;
-  organizatorIme?: string;
+  organizatorIme?: string | null;
   brojPrijava?: number;
+  status?: string | null;
+  tezina?: string | null;
+  opis?: string | null;
+};
+
+type PendingRequest = {
+  id: number;
+  korisnik: { imePrezime: string };
+  trka: {
+    id: number;
+    naziv: string;
+    vremePocetka: string;
+    planiranaDistancaKm: number;
+  };
+};
+
+type RaceSummary = {
+  id: number;
+  naziv: string;
+  vremePocetka: string;
+  planiranaDistancaKm: number;
+  tezina?: string | null;
   status?: string;
-  tezina?: string;
-  opis?: string;
+  opis?: string | null;
+  organizator?: { imePrezime: string } | null;
+  _count?: { ucesnici: number };
+};
+
+type UcesceSummary = {
+  id: number;
+  status: 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO';
+  trka: RaceSummary;
+  rezultat?: { predjeniKm: number; vremeTrajanja: string } | null;
+};
+
+type KomentarSummary = {
+  trkaId: number;
+  tekst: string;
+  ocena: number;
+};
+
+type ObavestenjeSummary = {
+  id: number;
+  tekst: string;
+  createdAt: string;
+};
+
+type ProfileData = {
+  imePrezime: string;
+  email: string;
+  uloga: string;
+  slikaUrl?: string | null;
+  ukupnoPredjeniKm?: number;
+  bio?: string | null;
+  pendingRequests: PendingRequest[];
+  ucesca: UcesceSummary[];
+  komentari: KomentarSummary[];
+  organizovaneTrke: RaceSummary[];
+  obavestenja: ObavestenjeSummary[];
 };
 
 export default function Profile() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [user, setUser] = useState<ProfileData | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ ime?: string; slikaUrl?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [bioText, setBioText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -37,7 +94,7 @@ export default function Profile() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch('/api/profile', {
         method: 'POST',
@@ -49,17 +106,30 @@ export default function Profile() {
         router.push('/login');
         return;
       }
-      const data = await res.json();
-      setUser(data);
-      setBioText(data.bio || '');
-      setCurrentUser({ ime: data.imePrezime, slikaUrl: data.slikaUrl ?? null });
+      const data = (await res.json()) as Partial<ProfileData>;
+      const normalized: ProfileData = {
+        imePrezime: data.imePrezime ?? '',
+        email: data.email ?? '',
+        uloga: data.uloga ?? 'TRKAC',
+        slikaUrl: data.slikaUrl ?? null,
+        ukupnoPredjeniKm: data.ukupnoPredjeniKm ?? 0,
+        bio: data.bio ?? null,
+        pendingRequests: data.pendingRequests ?? [],
+        ucesca: data.ucesca ?? [],
+        komentari: data.komentari ?? [],
+        organizovaneTrke: data.organizovaneTrke ?? [],
+        obavestenja: data.obavestenja ?? []
+      };
+      setUser(normalized);
+      setBioText(normalized.bio || '');
+      setCurrentUser({ ime: normalized.imePrezime, slikaUrl: normalized.slikaUrl ?? null });
     } catch (err) {
       console.error(err);
       router.push('/login');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   const handleSaveBio = async () => {
     try {
@@ -75,7 +145,7 @@ export default function Profile() {
         setIsEditing(false);
         fetchProfile();
       }
-    } catch (err) {
+    } catch {
       alert('Greška.');
     }
   };
@@ -140,8 +210,8 @@ export default function Profile() {
       }
 
       fetchProfile();
-    } catch (error: any) {
-      setUploadError(error?.message || 'Greška pri uploadu.');
+    } catch (error: unknown) {
+      setUploadError(error instanceof Error ? error.message : 'Greška pri uploadu.');
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -150,7 +220,7 @@ export default function Profile() {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   const handleLeave = async (trkaId: number) => {
     if (!confirm('Da li sigurno želiš da otkažeš učešće?')) return;
@@ -167,7 +237,7 @@ export default function Profile() {
         alert('Otkazano!');
         fetchProfile();
       }
-    } catch (err) {
+    } catch {
       alert('Greška.');
     }
   };
@@ -194,7 +264,7 @@ export default function Profile() {
         const data = await res.json();
         alert(data.message || 'Greška pri brisanju.');
       }
-    } catch (err) {
+    } catch {
       alert('Greška na mreži.');
     }
   };
@@ -255,7 +325,7 @@ export default function Profile() {
         const data = await res.json();
         setResultError(data.message || 'Greška pri snimanju.');
       }
-    } catch (err) {
+    } catch {
       setResultError('Greška na mreži.');
     }
   };
@@ -292,7 +362,7 @@ export default function Profile() {
         const data = await res.json();
         setCommentError(data.message || 'Greška pri slanju komentara.');
       }
-    } catch (err) {
+    } catch {
       setCommentError('Greška na mreži.');
     }
   };
@@ -312,7 +382,7 @@ export default function Profile() {
         const data = await res.json();
         alert(data.message || 'Greška pri prihvatanju.');
       }
-    } catch (err) {
+    } catch {
       alert('Greška na mreži.');
     }
   };
@@ -332,7 +402,7 @@ export default function Profile() {
         const data = await res.json();
         alert(data.message || 'Greška pri odbijanju.');
       }
-    } catch (err) {
+    } catch {
       alert('Greška na mreži.');
     }
   };
@@ -362,9 +432,11 @@ export default function Profile() {
                 title="Promeni profilnu sliku"
               >
                 {user?.slikaUrl ? (
-                  <img
+                  <Image
                     src={user.slikaUrl}
                     alt={user?.imePrezime || 'Profil'}
+                    width={80}
+                    height={80}
                     className="h-20 w-20 rounded-full object-cover"
                   />
                 ) : (
@@ -456,7 +528,7 @@ export default function Profile() {
             <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nema zahteva.</div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {user?.pendingRequests?.map((req: any) => (
+              {user?.pendingRequests?.map((req) => (
                 <div key={req.id} className="glass-card p-5 flex flex-col gap-3">
                   <div>
                     <h3 className="font-bold text-lg text-slate-900 dark:text-white">{req.korisnik.imePrezime}</h3>
@@ -488,7 +560,7 @@ export default function Profile() {
               <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nisi prijavljen ni na jednu trku.</div>
               ) : (
                 <div className="space-y-4">
-                  {user?.ucesca.map((ucesce: any) => (
+                  {user?.ucesca.map((ucesce) => (
                     <div key={ucesce.id} className="glass-card p-5 flex flex-col gap-3">
                       <RacePreviewCard
                         naziv={ucesce.trka.naziv}
@@ -574,13 +646,13 @@ export default function Profile() {
                       )}
 
                     {(() => {
-                      const hasComment = user?.komentari?.some((k: any) => k.trkaId === ucesce.trka.id);
+                      const hasComment = user?.komentari?.some((k) => k.trkaId === ucesce.trka.id);
                       const isPast = new Date(ucesce.trka.vremePocetka) < new Date();
 
                       if (ucesce.status !== 'PRIHVACENO' || !isPast) return null;
 
                       if (hasComment) {
-                        const komentar = user?.komentari?.find((k: any) => k.trkaId === ucesce.trka.id);
+                        const komentar = user?.komentari?.find((k) => k.trkaId === ucesce.trka.id);
                         return (
                           <div className="glass-subcard text-sm">
                             <div>💬 Tvoj komentar: {komentar?.tekst}</div>
@@ -637,7 +709,7 @@ export default function Profile() {
               <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nisi organizovao nijednu trku.</div>
               ) : (
                 <div className="space-y-4">
-                  {user?.organizovaneTrke.map((trka: any) => (
+                  {user?.organizovaneTrke.map((trka) => (
                     <div key={trka.id} className="glass-card p-5 relative">
                       <RacePreviewCard
                         naziv={trka.naziv}
@@ -743,7 +815,7 @@ export default function Profile() {
               {user?.obavestenja?.length === 0 ? (
                 <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">Nema obaveštenja.</div>
               ) : (
-                user?.obavestenja?.map((o: any) => (
+                user?.obavestenja?.map((o) => (
                   <div key={o.id} className="glass-card p-4">
                     <p className="text-sm text-slate-700 dark:text-slate-200">{o.tekst}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

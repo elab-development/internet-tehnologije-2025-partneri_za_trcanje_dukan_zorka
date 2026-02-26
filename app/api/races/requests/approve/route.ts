@@ -53,7 +53,7 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json(updated, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Greška.' }, { status: 500 });
   }
 }
