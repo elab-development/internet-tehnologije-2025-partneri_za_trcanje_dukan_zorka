@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthPayloadFromCookies } from '@/lib/auth';
 import { verifyCsrf } from '@/lib/csrf';
+import { validateCommentInput } from '@/lib/input-validation';
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { trkaId, tekst, ocena } = body;
 
-    if (!trkaId || !tekst || !ocena) {
+    if (!trkaId) {
       return NextResponse.json({ message: 'Fale podaci.' }, { status: 400 });
     }
 
@@ -25,18 +26,13 @@ export async function POST(req: Request) {
 
     const tId = Number(trkaId);
     const aId = Number(autorId);
-    const rating = Number(ocena);
-    const normalizedText = typeof tekst === 'string' ? tekst.trim() : '';
+    const validation = validateCommentInput({ tekst, ocena });
 
-    if (Number.isNaN(tId) || Number.isNaN(aId) || Number.isNaN(rating) || !normalizedText) {
-      return NextResponse.json({ message: 'Neispravni podaci.' }, { status: 400 });
-    }
-    if (normalizedText.length > 500) {
-      return NextResponse.json({ message: 'Komentar je predugačak (maks. 500 karaktera).' }, { status: 400 });
-    }
-
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json({ message: 'Ocena mora biti 1-5.' }, { status: 400 });
+    if (Number.isNaN(tId) || Number.isNaN(aId) || !validation.ok) {
+      return NextResponse.json(
+        { message: validation.ok ? 'Neispravni podaci.' : validation.message },
+        { status: 400 }
+      );
     }
 
     const trka = await prisma.trka.findUnique({ where: { id: tId } });
@@ -63,7 +59,7 @@ export async function POST(req: Request) {
     }
 
     const komentar = await prisma.komentar.create({
-      data: { trkaId: tId, autorId: aId, tekst: normalizedText, ocena: rating }
+      data: { trkaId: tId, autorId: aId, tekst: validation.data.tekst, ocena: validation.data.ocena }
     });
 
     return NextResponse.json(komentar, { status: 201 });
