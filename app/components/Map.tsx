@@ -238,6 +238,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         const isPast = startMs < now;
         const isOlderThanWeek = now - startMs > sevenDaysMs;
         if (isOlderThanWeek) return null;
+        const isOrganizer = !!currentUser && trka.organizatorId === currentUser.id;
 
         const userParticipationStatus = trka.mojStatusPrijave as 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' | null;
 
@@ -249,6 +250,15 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
               className: isDarkMode
                 ? 'bg-slate-700 text-slate-300 border border-slate-500/80 cursor-not-allowed'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            };
+          }
+          if (isOrganizer) {
+            return {
+              label: 'Ti si organizator',
+              disabled: true,
+              className: isDarkMode
+                ? 'bg-slate-700/80 text-slate-100 border border-slate-500/80 cursor-not-allowed'
+                : 'bg-slate-200 text-slate-800 border border-slate-300 cursor-not-allowed'
             };
           }
           if (!userParticipationStatus) {

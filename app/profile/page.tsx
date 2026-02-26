@@ -61,6 +61,25 @@ type ObavestenjeSummary = {
   createdAt: string;
 };
 
+type RunningPartner = {
+  id: number;
+  imePrezime: string;
+  slikaUrl?: string | null;
+  zajednickeTrkeCount: number;
+  poslednjaZajednickaTrka: string;
+  poslednjaZajednickaTrkaNaziv: string;
+  zajednickeTrke: Array<{
+    id: number;
+    naziv: string;
+    vremePocetka: string;
+    planiranaDistancaKm: number;
+    tezina: string;
+    status: string;
+    opis?: string | null;
+    organizatorIme: string;
+  }>;
+};
+
 type ProfileData = {
   imePrezime: string;
   email: string;
@@ -73,6 +92,7 @@ type ProfileData = {
   komentari: KomentarSummary[];
   organizovaneTrke: RaceSummary[];
   obavestenja: ObavestenjeSummary[];
+  runningPartners: RunningPartner[];
 };
 
 export default function Profile() {
@@ -90,6 +110,7 @@ export default function Profile() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [selectedRaceDetails, setSelectedRaceDetails] = useState<RaceDetails | null>(null);
+  const [openedPartnerId, setOpenedPartnerId] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -118,7 +139,8 @@ export default function Profile() {
         ucesca: data.ucesca ?? [],
         komentari: data.komentari ?? [],
         organizovaneTrke: data.organizovaneTrke ?? [],
-        obavestenja: data.obavestenja ?? []
+        obavestenja: data.obavestenja ?? [],
+        runningPartners: data.runningPartners ?? []
       };
       setUser(normalized);
       setBioText(normalized.bio || '');
@@ -408,6 +430,7 @@ export default function Profile() {
   };
 
   const notificationsCount = user?.obavestenja?.length ?? 0;
+  const runningPartners = user?.runningPartners ?? [];
 
   return (
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
@@ -547,13 +570,125 @@ export default function Profile() {
           )}
         </section>
 
-        <section className="space-y-5 anim-enter delay-2">
+        <section className="space-y-4 anim-enter delay-2">
+          <div className="flex items-center justify-between">
+            <h2 className="section-title">MOJI PARTNERI ZA TRČANJE</h2>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {runningPartners.length} partnera
+            </span>
+          </div>
+          {runningPartners.length === 0 ? (
+            <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">
+              Još nema partnera sa kojima si završio trku.
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {runningPartners.map((partner) => (
+                <div key={partner.id} className="glass-card p-5 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    {partner.slikaUrl ? (
+                      <Image
+                        src={partner.slikaUrl}
+                        alt={partner.imePrezime}
+                        width={52}
+                        height={52}
+                        className="h-12 w-12 rounded-full object-cover border border-white/80 dark:border-white/20"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-slate-700 flex items-center justify-center text-xl">
+                        👤
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">{partner.imePrezime}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {partner.zajednickeTrkeCount} zajedničkih trka
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                    <p>
+                      Poslednja zajednička: {new Date(partner.poslednjaZajednickaTrka).toLocaleDateString()}
+                    </p>
+                    <p className="truncate">
+                      Trka: {partner.poslednjaZajednickaTrkaNaziv}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        label="Pogledaj profil"
+                        variant="glass"
+                        size="sm"
+                        onClick={() => router.push(`/users/${partner.id}`)}
+                      />
+                      <Button
+                        label={openedPartnerId === partner.id ? 'Sakrij trke' : 'Zajedničke trke'}
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setOpenedPartnerId((prev) => (prev === partner.id ? null : partner.id))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {openedPartnerId === partner.id && (
+                    <div className="glass-subcard space-y-2">
+                      {partner.zajednickeTrke.length === 0 ? (
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          Nema detalja zajedničkih trka.
+                        </p>
+                      ) : (
+                        partner.zajednickeTrke.map((trka) => (
+                          <div
+                            key={trka.id}
+                            className="rounded-lg border border-slate-300/70 bg-white/80 p-3 dark:border-white/15 dark:bg-white/5"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{trka.naziv}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300">
+                                  {new Date(trka.vremePocetka).toLocaleDateString()} • {trka.planiranaDistancaKm} km
+                                </p>
+                              </div>
+                              <Button
+                                label="Detalji trke"
+                                size="sm"
+                                variant="secondary"
+                                onClick={() =>
+                                  setSelectedRaceDetails({
+                                    naziv: trka.naziv,
+                                    vremePocetka: trka.vremePocetka,
+                                    planiranaDistancaKm: trka.planiranaDistancaKm,
+                                    organizatorIme: trka.organizatorIme,
+                                    status: trka.status,
+                                    tezina: trka.tezina,
+                                    opis: trka.opis
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-5 anim-enter delay-3">
           <div className="grid gap-3 text-center lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:text-left">
             <h2 className="section-title lg:text-center">PRIJAVLJENE TRKE</h2>
             <div className="hidden h-10 w-px bg-white/20 lg:block" />
             <h2 className="section-title lg:text-center">ORGANIZOVANE TRKE</h2>
           </div>
-
+ 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               {user?.ucesca?.length === 0 ? (
