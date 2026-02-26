@@ -26,9 +26,13 @@ export async function POST(req: Request) {
     const tId = Number(trkaId);
     const aId = Number(autorId);
     const rating = Number(ocena);
+    const normalizedText = typeof tekst === 'string' ? tekst.trim() : '';
 
-    if (Number.isNaN(tId) || Number.isNaN(aId) || Number.isNaN(rating)) {
+    if (Number.isNaN(tId) || Number.isNaN(aId) || Number.isNaN(rating) || !normalizedText) {
       return NextResponse.json({ message: 'Neispravni podaci.' }, { status: 400 });
+    }
+    if (normalizedText.length > 500) {
+      return NextResponse.json({ message: 'Komentar je predugačak (maks. 500 karaktera).' }, { status: 400 });
     }
 
     if (rating < 1 || rating > 5) {
@@ -59,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     const komentar = await prisma.komentar.create({
-      data: { trkaId: tId, autorId: aId, tekst, ocena: rating }
+      data: { trkaId: tId, autorId: aId, tekst: normalizedText, ocena: rating }
     });
 
     return NextResponse.json(komentar, { status: 201 });
