@@ -18,7 +18,15 @@ export async function POST() {
             trka: { 
                include: {
                  organizator: true,
-                 _count: { select: { ucesnici: true } }
+                 _count: {
+                   select: {
+                     ucesnici: {
+                       where: {
+                         status: 'PRIHVACENO'
+                       }
+                     }
+                   }
+                 }
                }
             },
             rezultat: true
@@ -27,7 +35,15 @@ export async function POST() {
         organizovaneTrke: {
           include: {
             organizator: { select: { id: true, imePrezime: true } },
-            _count: { select: { ucesnici: true } }
+            _count: {
+              select: {
+                ucesnici: {
+                  where: {
+                    status: 'PRIHVACENO'
+                  }
+                }
+              }
+            }
           },
           orderBy: { vremePocetka: 'desc' }
         },
