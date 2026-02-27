@@ -21,7 +21,7 @@ export default function Input({
 }: InputProps) {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={name} className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
         {label}
       </label>
       <input
@@ -32,10 +32,12 @@ export default function Input({
         value={value}
         onChange={onChange}
         className={`
-          w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 text-gray-700
+          w-full rounded-lg border px-3 py-2 text-slate-800 placeholder:text-slate-500 shadow-sm
+          focus:outline-none focus:ring-2
+          dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-400
           ${error 
-            ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}
+            ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+            : 'border-slate-300 bg-white/90 focus:border-blue-500 focus:ring-blue-500'}
         `}
       />
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}

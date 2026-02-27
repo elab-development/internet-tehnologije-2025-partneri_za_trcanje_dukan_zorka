@@ -46,6 +46,7 @@ interface RacePreviewCardProps {
   onOpenDetails?: () => void;
   detailsLabel?: string;
   detailsContainerClassName?: string;
+  stackMeta?: boolean;
 }
 
 const statusLabel = (status?: RaceStatus | null) => {
@@ -88,6 +89,7 @@ export default function RacePreviewCard({
   onOpenDetails,
   detailsLabel = 'Detalji trke',
   detailsContainerClassName,
+  stackMeta = false,
 }: RacePreviewCardProps) {
   const dt = new Date(vremePocetka);
   const resolvedStatus = resolveDisplayStatus(status, vremePocetka);
@@ -145,7 +147,7 @@ export default function RacePreviewCard({
       </div>
 
       {!minimal && (
-        <div className={`mt-3 grid gap-2 ${compact ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
+        <div className={`mt-3 grid gap-2 ${stackMeta ? 'grid-cols-1' : compact ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
           <p className={`${metaTextClasses} ${metaPillClasses}`}>
             Distanca: <span className="font-semibold">{planiranaDistancaKm ?? 0} km</span>
           </p>

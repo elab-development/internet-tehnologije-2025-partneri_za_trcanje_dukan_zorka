@@ -361,8 +361,8 @@ export default function Profile() {
   const handleSaveComment = async (trkaId: number) => {
     try {
       setCommentError(null);
-      if (!commentData.tekst || !commentData.ocena) {
-        setCommentError('Unesi komentar i ocenu.');
+      if (!commentData.ocena) {
+        setCommentError('Izaberi ocenu.');
         return;
       }
 
@@ -731,10 +731,10 @@ export default function Profile() {
                       />
 
                     {ucesce.rezultat && (
-                      <div className="glass-subcard text-sm">
-                        <div>✅ Rezultat: {ucesce.rezultat.predjeniKm} km</div>
-                        <div>⏱ Vreme: {ucesce.rezultat.vremeTrajanja}</div>
-                        <div>⚡ Tempo: {formatPace(ucesce.rezultat.predjeniKm, ucesce.rezultat.vremeTrajanja)}</div>
+                      <div className="glass-subcard text-sm font-mono">
+                        <div>Rezultat: {ucesce.rezultat.predjeniKm} km</div>
+                        <div>Vreme: {ucesce.rezultat.vremeTrajanja}</div>
+                        <div>Tempo: {formatPace(ucesce.rezultat.predjeniKm, ucesce.rezultat.vremeTrajanja)}</div>
                       </div>
                     )}
 
@@ -789,9 +789,9 @@ export default function Profile() {
                       if (hasComment) {
                         const komentar = user?.komentari?.find((k) => k.trkaId === ucesce.trka.id);
                         return (
-                          <div className="glass-subcard text-sm">
-                            <div>💬 Tvoj komentar: {komentar?.tekst}</div>
-                            <div>⭐ Ocena: {komentar?.ocena}/5</div>
+                          <div className="glass-subcard text-sm font-mono">
+                            {komentar?.tekst ? <div>Komentar: {komentar.tekst}</div> : null}
+                            <div>Ocena: {komentar?.ocena}/5</div>
                           </div>
                         );
                       }
@@ -799,8 +799,8 @@ export default function Profile() {
                       return (
                         <div>
                           {commentFormOpen === ucesce.trka.id ? (
-                            <div className="glass-subcard">
-                              <div className="grid grid-cols-2 gap-2">
+                            <div className="glass-subcard font-mono">
+                              <div className="grid grid-cols-1 gap-2">
                                 <select
                                   className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   value={commentData.ocena}
@@ -814,7 +814,7 @@ export default function Profile() {
                                 </select>
                                 <input
                                   className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
-                                  placeholder="Komentar"
+                                  placeholder="Komentar (opciono)"
                                   value={commentData.tekst}
                                   onChange={(e) => setCommentData({ ...commentData, tekst: e.target.value })}
                                 />
@@ -823,12 +823,12 @@ export default function Profile() {
                                 <div className="text-xs text-red-300 mt-2">{commentError}</div>
                               )}
                               <div className="flex flex-wrap gap-2 mt-3">
-                                <Button label="Sačuvaj komentar" variant="primary" onClick={() => handleSaveComment(ucesce.trka.id)} />
+                                <Button label="Sačuvaj ocenu" variant="primary" onClick={() => handleSaveComment(ucesce.trka.id)} />
                                 <Button label="Otkaži" variant="secondary" onClick={() => setCommentFormOpen(null)} />
                               </div>
                             </div>
                           ) : (
-                            <Button label="Ostavi komentar" variant="secondary" onClick={() => openCommentForm(ucesce.trka.id)} />
+                            <Button label="Oceni trku" variant="secondary" onClick={() => openCommentForm(ucesce.trka.id)} />
                           )}
                         </div>
                       );
@@ -897,7 +897,7 @@ export default function Profile() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detalji trke</h3>
               <button
                 onClick={() => setSelectedRaceDetails(null)}
-                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white/80 text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-slate-900 dark:border-white/20 dark:bg-white/10 dark:text-slate-300 dark:hover:border-white/40 dark:hover:bg-white/20 dark:hover:text-white"
               >
                 ✕
               </button>
@@ -941,7 +941,7 @@ export default function Profile() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Obaveštenja</h3>
               <button
                 onClick={() => setNotificationsOpen(false)}
-                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white/80 text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-slate-900 dark:border-white/20 dark:bg-white/10 dark:text-slate-300 dark:hover:border-white/40 dark:hover:bg-white/20 dark:hover:text-white"
               >
                 ✕
               </button>
