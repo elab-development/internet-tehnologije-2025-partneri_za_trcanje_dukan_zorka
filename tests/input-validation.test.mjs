@@ -54,6 +54,18 @@ test('comment input: trimuje i prihvata validan komentar', () => {
   }
 });
 
+test('comment input: prihvata ocenu bez komentara', () => {
+  const result = validateCommentInput({
+    ocena: 4
+  });
+
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.data.tekst, '');
+    assert.equal(result.data.ocena, 4);
+  }
+});
+
 test('comment input: odbija ocenu van opsega', () => {
   const result = validateCommentInput({
     tekst: 'Super',

@@ -86,6 +86,54 @@ export const openApiSpec = {
           },
           mojStatusPrijave: { type: 'string', nullable: true, example: 'NA_CEKANJU' }
         }
+      },
+      OrganizerRaceItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          naziv: { type: 'string' },
+          vremePocetka: { type: 'string', format: 'date-time' },
+          planiranaDistancaKm: { type: 'number' },
+          lokacijaLat: { type: 'number' },
+          lokacijaLng: { type: 'number' },
+          status: { type: 'string', example: 'PLANIRANA' },
+          tezina: { type: 'string', example: 'Rekreativno' },
+          udaljenostKm: { type: 'number', nullable: true, example: 12.4 }
+        }
+      },
+      OrganizerItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          imePrezime: { type: 'string', example: 'Pera Peric' },
+          slikaUrl: { type: 'string', nullable: true },
+          bio: { type: 'string', nullable: true },
+          trkeCount: { type: 'integer', example: 4 },
+          poslednjaTrka: { type: 'string', format: 'date-time', nullable: true },
+          trke: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/OrganizerRaceItem' }
+          }
+        }
+      },
+      OrganizersResponse: {
+        type: 'object',
+        properties: {
+          organizers: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/OrganizerItem' }
+          },
+          meta: {
+            type: 'object',
+            properties: {
+              radiusKm: { type: 'number', example: 30 },
+              hasLocation: { type: 'boolean', example: true },
+              query: { type: 'string', example: 'pera' },
+              totalRaces: { type: 'integer', example: 12 },
+              totalOrganizers: { type: 'integer', example: 5 }
+            }
+          }
+        }
       }
     }
   },
@@ -280,11 +328,62 @@ export const openApiSpec = {
           403: { description: 'CSRF token nije validan' }
         }
       }
+    },
+    '/api/organizers': {
+      get: {
+        tags: ['Organizers'],
+        summary: 'Pretraga organizatora trka (prošle + buduće), opciono po lokaciji',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          {
+            in: 'query',
+            name: 'q',
+            required: false,
+            schema: { type: 'string', maxLength: 80 },
+            description: 'Pretraga po imenu i prezimenu organizatora'
+          },
+          {
+            in: 'query',
+            name: 'lat',
+            required: false,
+            schema: { type: 'number', minimum: -90, maximum: 90 },
+            description: 'Latitude korisnika'
+          },
+          {
+            in: 'query',
+            name: 'lng',
+            required: false,
+            schema: { type: 'number', minimum: -180, maximum: 180 },
+            description: 'Longitude korisnika'
+          },
+          {
+            in: 'query',
+            name: 'radiusKm',
+            required: false,
+            schema: { type: 'number', minimum: 1, default: 30 },
+            description: 'Radijus pretrage u km'
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Lista organizatora i njihovih trka',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizersResponse' }
+              }
+            }
+          },
+          400: { description: 'Neispravni query parametri' },
+          401: { description: 'Nije prijavljen' },
+          500: { description: 'Serverska greška' }
+        }
+      }
     }
   },
   tags: [
     { name: 'Auth', description: 'Autentifikacija korisnika' },
     { name: 'Races', description: 'Upravljanje trkama i prijavama' },
-    { name: 'Profile', description: 'Profil korisnika' }
+    { name: 'Profile', description: 'Profil korisnika' },
+    { name: 'Organizers', description: 'Pretraga i pregled organizatora trka' }
   ]
 } as const;

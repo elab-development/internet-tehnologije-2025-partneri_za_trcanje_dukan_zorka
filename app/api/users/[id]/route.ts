@@ -30,7 +30,15 @@ export async function GET(
             status: true,
             tezina: true,
             opis: true,
-            _count: { select: { ucesnici: true } }
+            _count: {
+              select: {
+                ucesnici: {
+                  where: {
+                    status: 'PRIHVACENO'
+                  }
+                }
+              }
+            }
           },
           orderBy: { vremePocetka: 'desc' },
           take: 10

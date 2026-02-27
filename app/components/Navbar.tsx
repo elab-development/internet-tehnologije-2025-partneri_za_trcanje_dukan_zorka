@@ -71,6 +71,9 @@ export default function Navbar({ currentUser }: NavbarProps) {
           <Link href="/about" className="text-slate-600 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white font-semibold hidden md:block relative after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-blue-500 after:transition-all after:duration-300 hover:after:w-full">
             O nama
           </Link>
+          <Link href="/organizatori" className="text-slate-600 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white font-semibold hidden md:block relative after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-blue-500 after:transition-all after:duration-300 hover:after:w-full">
+            Organizatori
+          </Link>
           {theme && (
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -144,6 +147,13 @@ export default function Navbar({ currentUser }: NavbarProps) {
               onClick={() => setIsOpen(false)} 
             >
               O nama
+            </Link>
+            <Link
+              href="/organizatori"
+              className="text-slate-700 dark:text-slate-200 font-semibold"
+              onClick={() => setIsOpen(false)}
+            >
+              Organizatori
             </Link>
             {theme && (
               <button

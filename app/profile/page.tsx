@@ -61,6 +61,25 @@ type ObavestenjeSummary = {
   createdAt: string;
 };
 
+type RunningPartner = {
+  id: number;
+  imePrezime: string;
+  slikaUrl?: string | null;
+  zajednickeTrkeCount: number;
+  poslednjaZajednickaTrka: string;
+  poslednjaZajednickaTrkaNaziv: string;
+  zajednickeTrke: Array<{
+    id: number;
+    naziv: string;
+    vremePocetka: string;
+    planiranaDistancaKm: number;
+    tezina: string;
+    status: string;
+    opis?: string | null;
+    organizatorIme: string;
+  }>;
+};
+
 type ProfileData = {
   imePrezime: string;
   email: string;
@@ -73,6 +92,7 @@ type ProfileData = {
   komentari: KomentarSummary[];
   organizovaneTrke: RaceSummary[];
   obavestenja: ObavestenjeSummary[];
+  runningPartners: RunningPartner[];
 };
 
 export default function Profile() {
@@ -90,6 +110,7 @@ export default function Profile() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [selectedRaceDetails, setSelectedRaceDetails] = useState<RaceDetails | null>(null);
+  const [openedPartnerId, setOpenedPartnerId] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -118,7 +139,8 @@ export default function Profile() {
         ucesca: data.ucesca ?? [],
         komentari: data.komentari ?? [],
         organizovaneTrke: data.organizovaneTrke ?? [],
-        obavestenja: data.obavestenja ?? []
+        obavestenja: data.obavestenja ?? [],
+        runningPartners: data.runningPartners ?? []
       };
       setUser(normalized);
       setBioText(normalized.bio || '');
@@ -339,8 +361,8 @@ export default function Profile() {
   const handleSaveComment = async (trkaId: number) => {
     try {
       setCommentError(null);
-      if (!commentData.tekst || !commentData.ocena) {
-        setCommentError('Unesi komentar i ocenu.');
+      if (!commentData.ocena) {
+        setCommentError('Izaberi ocenu.');
         return;
       }
 
@@ -408,6 +430,7 @@ export default function Profile() {
   };
 
   const notificationsCount = user?.obavestenja?.length ?? 0;
+  const runningPartners = user?.runningPartners ?? [];
 
   return (
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
@@ -547,13 +570,125 @@ export default function Profile() {
           )}
         </section>
 
-        <section className="space-y-5 anim-enter delay-2">
+        <section className="space-y-4 anim-enter delay-2">
+          <div className="flex items-center justify-between">
+            <h2 className="section-title">MOJI PARTNERI ZA TRČANJE</h2>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {runningPartners.length} partnera
+            </span>
+          </div>
+          {runningPartners.length === 0 ? (
+            <div className="glass-card p-4 text-slate-600 dark:text-slate-300 italic">
+              Još nema partnera sa kojima si završio trku.
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {runningPartners.map((partner) => (
+                <div key={partner.id} className="glass-card p-5 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    {partner.slikaUrl ? (
+                      <Image
+                        src={partner.slikaUrl}
+                        alt={partner.imePrezime}
+                        width={52}
+                        height={52}
+                        className="h-12 w-12 rounded-full object-cover border border-white/80 dark:border-white/20"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-slate-700 flex items-center justify-center text-xl">
+                        👤
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">{partner.imePrezime}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {partner.zajednickeTrkeCount} zajedničkih trka
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                    <p>
+                      Poslednja zajednička: {new Date(partner.poslednjaZajednickaTrka).toLocaleDateString()}
+                    </p>
+                    <p className="truncate">
+                      Trka: {partner.poslednjaZajednickaTrkaNaziv}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        label="Pogledaj profil"
+                        variant="glass"
+                        size="sm"
+                        onClick={() => router.push(`/users/${partner.id}`)}
+                      />
+                      <Button
+                        label={openedPartnerId === partner.id ? 'Sakrij trke' : 'Zajedničke trke'}
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setOpenedPartnerId((prev) => (prev === partner.id ? null : partner.id))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {openedPartnerId === partner.id && (
+                    <div className="glass-subcard space-y-2">
+                      {partner.zajednickeTrke.length === 0 ? (
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          Nema detalja zajedničkih trka.
+                        </p>
+                      ) : (
+                        partner.zajednickeTrke.map((trka) => (
+                          <div
+                            key={trka.id}
+                            className="rounded-lg border border-slate-300/70 bg-white/80 p-3 dark:border-white/15 dark:bg-white/5"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{trka.naziv}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300">
+                                  {new Date(trka.vremePocetka).toLocaleDateString()} • {trka.planiranaDistancaKm} km
+                                </p>
+                              </div>
+                              <Button
+                                label="Detalji trke"
+                                size="sm"
+                                variant="secondary"
+                                onClick={() =>
+                                  setSelectedRaceDetails({
+                                    naziv: trka.naziv,
+                                    vremePocetka: trka.vremePocetka,
+                                    planiranaDistancaKm: trka.planiranaDistancaKm,
+                                    organizatorIme: trka.organizatorIme,
+                                    status: trka.status,
+                                    tezina: trka.tezina,
+                                    opis: trka.opis
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-5 anim-enter delay-3">
           <div className="grid gap-3 text-center lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:text-left">
             <h2 className="section-title lg:text-center">PRIJAVLJENE TRKE</h2>
             <div className="hidden h-10 w-px bg-white/20 lg:block" />
             <h2 className="section-title lg:text-center">ORGANIZOVANE TRKE</h2>
           </div>
-
+ 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               {user?.ucesca?.length === 0 ? (
@@ -573,12 +708,14 @@ export default function Profile() {
                         compact
                         minimal
                         rightAction={
-                          <button
-                            onClick={() => handleLeave(ucesce.trka.id)}
-                            className="text-red-500 dark:text-red-300 text-sm hover:underline font-medium"
-                          >
-                            Otkaži
-                          </button>
+                          new Date(ucesce.trka.vremePocetka) >= new Date() ? (
+                            <button
+                              onClick={() => handleLeave(ucesce.trka.id)}
+                              className="text-red-500 dark:text-red-300 text-sm hover:underline font-medium"
+                            >
+                              Otkaži
+                            </button>
+                          ) : undefined
                         }
                         onOpenDetails={() =>
                           setSelectedRaceDetails({
@@ -596,10 +733,10 @@ export default function Profile() {
                       />
 
                     {ucesce.rezultat && (
-                      <div className="glass-subcard text-sm">
-                        <div>✅ Rezultat: {ucesce.rezultat.predjeniKm} km</div>
-                        <div>⏱ Vreme: {ucesce.rezultat.vremeTrajanja}</div>
-                        <div>⚡ Tempo: {formatPace(ucesce.rezultat.predjeniKm, ucesce.rezultat.vremeTrajanja)}</div>
+                      <div className="glass-subcard text-sm font-mono">
+                        <div>Rezultat: {ucesce.rezultat.predjeniKm} km</div>
+                        <div>Vreme: {ucesce.rezultat.vremeTrajanja}</div>
+                        <div>Tempo: {formatPace(ucesce.rezultat.predjeniKm, ucesce.rezultat.vremeTrajanja)}</div>
                       </div>
                     )}
 
@@ -654,9 +791,9 @@ export default function Profile() {
                       if (hasComment) {
                         const komentar = user?.komentari?.find((k) => k.trkaId === ucesce.trka.id);
                         return (
-                          <div className="glass-subcard text-sm">
-                            <div>💬 Tvoj komentar: {komentar?.tekst}</div>
-                            <div>⭐ Ocena: {komentar?.ocena}/5</div>
+                          <div className="glass-subcard text-sm font-mono">
+                            {komentar?.tekst ? <div>Komentar: {komentar.tekst}</div> : null}
+                            <div>Ocena: {komentar?.ocena}/5</div>
                           </div>
                         );
                       }
@@ -664,8 +801,8 @@ export default function Profile() {
                       return (
                         <div>
                           {commentFormOpen === ucesce.trka.id ? (
-                            <div className="glass-subcard">
-                              <div className="grid grid-cols-2 gap-2">
+                            <div className="glass-subcard font-mono">
+                              <div className="grid grid-cols-1 gap-2">
                                 <select
                                   className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                                   value={commentData.ocena}
@@ -679,7 +816,7 @@ export default function Profile() {
                                 </select>
                                 <input
                                   className="w-full rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-sm text-slate-800 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
-                                  placeholder="Komentar"
+                                  placeholder="Komentar (opciono)"
                                   value={commentData.tekst}
                                   onChange={(e) => setCommentData({ ...commentData, tekst: e.target.value })}
                                 />
@@ -688,12 +825,12 @@ export default function Profile() {
                                 <div className="text-xs text-red-300 mt-2">{commentError}</div>
                               )}
                               <div className="flex flex-wrap gap-2 mt-3">
-                                <Button label="Sačuvaj komentar" variant="primary" onClick={() => handleSaveComment(ucesce.trka.id)} />
+                                <Button label="Sačuvaj ocenu" variant="primary" onClick={() => handleSaveComment(ucesce.trka.id)} />
                                 <Button label="Otkaži" variant="secondary" onClick={() => setCommentFormOpen(null)} />
                               </div>
                             </div>
                           ) : (
-                            <Button label="Ostavi komentar" variant="secondary" onClick={() => openCommentForm(ucesce.trka.id)} />
+                            <Button label="Oceni trku" variant="secondary" onClick={() => openCommentForm(ucesce.trka.id)} />
                           )}
                         </div>
                       );
@@ -762,7 +899,7 @@ export default function Profile() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detalji trke</h3>
               <button
                 onClick={() => setSelectedRaceDetails(null)}
-                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white/80 text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-slate-900 dark:border-white/20 dark:bg-white/10 dark:text-slate-300 dark:hover:border-white/40 dark:hover:bg-white/20 dark:hover:text-white"
               >
                 ✕
               </button>
@@ -806,7 +943,7 @@ export default function Profile() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Obaveštenja</h3>
               <button
                 onClick={() => setNotificationsOpen(false)}
-                className="text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white/80 text-slate-600 transition hover:border-slate-400 hover:bg-white hover:text-slate-900 dark:border-white/20 dark:bg-white/10 dark:text-slate-300 dark:hover:border-white/40 dark:hover:bg-white/20 dark:hover:text-white"
               >
                 ✕
               </button>

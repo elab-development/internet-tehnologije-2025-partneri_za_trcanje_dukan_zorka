@@ -24,10 +24,29 @@ type Trka = {
   organizator?: { imePrezime?: string };
 };
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const NEARBY_RADIUS_KM = 30;
+
+const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+
+const distanceInKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+};
+
 export default function Home() {
   const AUTH_UI_CACHE_KEY = 'auth_ui_cache';
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'ready' | 'denied' | 'unsupported'>('idle');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [trke, setTrke] = useState<Trka[]>([]); 
@@ -60,6 +79,47 @@ export default function Home() {
   const handleHeroAnimationComplete = () => {
     console.log('BlurText animation completed.');
   };
+
+  useEffect(() => {
+    const applyTheme = () => {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        setIsDarkMode(storedTheme === 'dark');
+        return;
+      }
+      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    };
+
+    applyTheme();
+    window.addEventListener('theme-change', applyTheme);
+    window.addEventListener('storage', applyTheme);
+    return () => {
+      window.removeEventListener('theme-change', applyTheme);
+      window.removeEventListener('storage', applyTheme);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      setLocationStatus('unsupported');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setLocationStatus('ready');
+      },
+      () => {
+        setLocationStatus('denied');
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+    );
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -99,6 +159,10 @@ export default function Home() {
     checkUser();
   }, []);
 
+  const filterInputClass = isDarkMode
+    ? 'w-full rounded-lg border border-white/20 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500'
+    : 'w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500';
+
 
   const fetchTrke = async () => {
     try {
@@ -128,31 +192,50 @@ export default function Home() {
       return matchSearch && matchDist && matchDate;
     });
   }, [trke, filters]);
-  
-  const upcomingCount = useMemo(() => {
-    const now = new Date();
-    return trke.filter((t) => new Date(t.vremePocetka) >= now).length;
-  }, [trke]);
+
+  const mapVisibleTrke = useMemo(() => {
+    const now = Date.now();
+    return filteredTrke.filter((t) => {
+      const startMs = new Date(t.vremePocetka).getTime();
+      return Number.isFinite(startMs) && now - startMs <= WEEK_MS;
+    });
+  }, [filteredTrke]);
+
+  const nearbyCount = useMemo(() => {
+    if (!userLocation) return null;
+    return mapVisibleTrke.filter((t) => {
+      const km = distanceInKm(userLocation.lat, userLocation.lng, t.lokacijaLat, t.lokacijaLng);
+      return km <= NEARBY_RADIUS_KM;
+    }).length;
+  }, [mapVisibleTrke, userLocation]);
+
+  const nearbyVisibleTrke = useMemo(() => {
+    if (!userLocation) return mapVisibleTrke;
+    return mapVisibleTrke.filter((t) => {
+      const km = distanceInKm(userLocation.lat, userLocation.lng, t.lokacijaLat, t.lokacijaLng);
+      return km <= NEARBY_RADIUS_KM;
+    });
+  }, [mapVisibleTrke, userLocation]);
 
   const filtersContent = (
     <>
       <p className="text-sm font-semibold">Filtriraj trke</p>
-      <div className="mt-3 space-y-2">
+      <div className="mt-3 space-y-2" key={isDarkMode ? 'filters-dark' : 'filters-light'}>
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+          className={filterInputClass}
           placeholder="Pretraga po nazivu"
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
         />
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+          className={filterInputClass}
           placeholder="Min distanca (km)"
           type="number"
           value={filters.minDistance}
           onChange={(e) => setFilters({ ...filters, minDistance: e.target.value })}
         />
         <input
-          className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
+          className={filterInputClass}
           type="date"
           value={filters.fromDate}
           onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
@@ -163,21 +246,19 @@ export default function Home() {
 
   const statsContent = (
     <>
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Statistika</p>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Mape u blizini</p>
+      <div className="mt-2">
         <div className="glass-mini text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400">Ukupno</p>
-          <p className="text-lg font-bold">{trke.length}</p>
-        </div>
-        <div className="glass-mini text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400">Predstojeće</p>
-          <p className="text-lg font-bold">{upcomingCount}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">U krugu {NEARBY_RADIUS_KM} km</p>
+          <p className="text-lg font-bold">{nearbyCount ?? '—'}</p>
         </div>
       </div>
       <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
+        {locationStatus === 'denied' && 'Dozvoli lokaciju u browseru za prikaz trka u blizini.'}
+        {locationStatus === 'unsupported' && 'Geolokacija nije podržana na ovom uređaju.'}
         {racesLoading && "Učitavanje trka..."}
         {!racesLoading && racesError && racesError}
-        {!racesLoading && !racesError && filteredTrke.length === 0 && "Nema trka za izabrane filtere."}
+        {!racesLoading && !racesError && nearbyVisibleTrke.length === 0 && "Nema trka za izabrane filtere."}
       </div>
     </>
   );
@@ -345,7 +426,7 @@ export default function Home() {
           <div className="h-full w-full relative z-0">
             <Map
               interactive={isLoggedIn}
-              trke={filteredTrke}
+              trke={nearbyVisibleTrke}
               draftLocation={draftLocation}
               currentUser={currentUser}
               onMapClick={handleMapClick}
@@ -406,8 +487,8 @@ export default function Home() {
           )}
 
           {showNewRaceForm && (
-            <div className="text-gray-700 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass-card glass-soft z-30 w-96 border border-blue-200">
-              <h3 className="font-bold text-lg mb-2 text-center">Nova trka ovde? 📍</h3>
+            <div className="absolute top-1/2 left-1/2 z-30 w-96 -translate-x-1/2 -translate-y-1/2 transform border border-blue-200 text-slate-800 glass-card glass-soft dark:border-white/20 dark:text-slate-100">
+              <h3 className="mb-2 text-center text-lg font-bold text-slate-900 dark:text-white">Organizuj trku</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-4">
                 Lokacija: {newRaceData.lat.toFixed(4)}, {newRaceData.lng.toFixed(4)}
               </p>
@@ -428,9 +509,9 @@ export default function Home() {
                   onChange={(e) => setNewRaceData({ ...newRaceData, distanca: e.target.value })}
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Težina staze</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">Težina staze</label>
                   <select
-                    className="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 bg-white/90 px-3 py-2 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/20 dark:bg-slate-900/70 dark:text-slate-100"
                     value={newRaceData.tezina}
                     onChange={(e) => setNewRaceData({ ...newRaceData, tezina: e.target.value })}
                   >

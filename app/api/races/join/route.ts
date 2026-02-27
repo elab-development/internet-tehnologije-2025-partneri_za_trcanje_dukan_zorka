@@ -23,28 +23,35 @@ export async function POST(req: Request) {
     }
 
     const korisnikId = auth.id;
-
-    const existing = await prisma.ucesce.findFirst({
-      where: {
-        trkaId: Number(trkaId),
-        korisnikId: Number(korisnikId)
-      }
-    });
-
-    if (existing) {
-      return NextResponse.json({ message: 'Već si prijavljen na ovu trku!' }, { status: 409 });
+    const trkaIdNum = Number(trkaId);
+    if (Number.isNaN(trkaIdNum)) {
+      return NextResponse.json({ message: 'Neispravan ID trke.' }, { status: 400 });
     }
 
     const trka = await prisma.trka.findUnique({
-      where: { id: Number(trkaId) },
+      where: { id: trkaIdNum },
       include: { organizator: true }
     });
 
     if (!trka) {
       return NextResponse.json({ message: 'Trka ne postoji.' }, { status: 404 });
     }
+    if (trka.organizatorId === Number(korisnikId)) {
+      return NextResponse.json({ message: 'Ti si organizator ove trke.' }, { status: 400 });
+    }
     if (new Date(trka.vremePocetka) < new Date()) {
       return NextResponse.json({ message: 'Prijave za ovu trku su zatvorene.' }, { status: 400 });
+    }
+
+    const existing = await prisma.ucesce.findFirst({
+      where: {
+        trkaId: trkaIdNum,
+        korisnikId: Number(korisnikId)
+      }
+    });
+
+    if (existing) {
+      return NextResponse.json({ message: 'Već si prijavljen na ovu trku!' }, { status: 409 });
     }
 
     const korisnik = await prisma.korisnik.findUnique({
@@ -57,7 +64,7 @@ export async function POST(req: Request) {
 
     const novoUcesce = await prisma.ucesce.create({
       data: {
-        trkaId: Number(trkaId),
+        trkaId: trkaIdNum,
         korisnikId: Number(korisnikId),
       }
     });

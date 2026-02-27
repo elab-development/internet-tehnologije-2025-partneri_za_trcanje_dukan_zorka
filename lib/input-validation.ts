@@ -66,10 +66,14 @@ export const validateCommentInput = (input: {
   tekst?: unknown;
   ocena?: unknown;
 }): ValidationResult<CommentData> => {
-  const normalizedText = typeof input.tekst === 'string' ? input.tekst.trim() : '';
+  if (input.tekst !== undefined && typeof input.tekst !== 'string') {
+    return { ok: false, message: 'Komentar mora biti tekst.' };
+  }
+
+  const normalizedText = (input.tekst ?? '').toString().trim();
   const rating = Number(input.ocena);
 
-  if (!normalizedText || Number.isNaN(rating)) {
+  if (Number.isNaN(rating)) {
     return { ok: false, message: 'Neispravni podaci.' };
   }
   if (normalizedText.length > 500) {

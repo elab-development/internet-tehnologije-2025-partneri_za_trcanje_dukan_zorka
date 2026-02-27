@@ -37,7 +37,11 @@ export async function GET() {
       },
       _count: {
         select: {
-          ucesnici: true
+          ucesnici: {
+            where: {
+              status: 'PRIHVACENO'
+            }
+          }
         }
       }
     },

@@ -28,7 +28,11 @@ export async function GET() {
         },
         _count: {
           select: {
-            ucesnici: true
+            ucesnici: {
+              where: {
+                status: 'PRIHVACENO'
+              }
+            }
           }
         },
         ucesnici: {
@@ -82,18 +86,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Nije prijavljen.' }, { status: 401 });
     }
 
-    const novaTrka = await prisma.trka.create({
-      data: {
-        naziv: validation.data.naziv,
-        vremePocetka: validation.data.vremePocetka,
-        planiranaDistancaKm: validation.data.planiranaDistancaKm,
-        lokacijaLat: validation.data.lokacijaLat,
-        lokacijaLng: validation.data.lokacijaLng,
-        opis: validation.data.opis,
-        organizatorId: auth.id,
-        tezina: validation.data.tezina,
-        status: 'PLANIRANA'
-      }
+    const novaTrka = await prisma.$transaction(async (tx) => {
+      const createdRace = await tx.trka.create({
+        data: {
+          naziv: validation.data.naziv,
+          vremePocetka: validation.data.vremePocetka,
+          planiranaDistancaKm: validation.data.planiranaDistancaKm,
+          lokacijaLat: validation.data.lokacijaLat,
+          lokacijaLng: validation.data.lokacijaLng,
+          opis: validation.data.opis,
+          organizatorId: auth.id,
+          tezina: validation.data.tezina,
+          status: 'PLANIRANA'
+        }
+      });
+
+      await tx.ucesce.create({
+        data: {
+          trkaId: createdRace.id,
+          korisnikId: auth.id,
+          status: 'PRIHVACENO'
+        }
+      });
+
+      return createdRace;
     });
 
     return NextResponse.json(novaTrka, { status: 201 });

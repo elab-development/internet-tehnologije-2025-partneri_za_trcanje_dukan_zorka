@@ -46,6 +46,9 @@ type PublicProfileData = {
   ukupnoPredjeniKm?: number;
 };
 
+type MapCenter = [number, number];
+const DEFAULT_CENTER: MapCenter = [44.7866, 20.4489];
+
 const getIconUrl = (imgImport: string | StaticImageData) =>
   typeof imgImport === 'string' ? imgImport : imgImport.src;
 
@@ -58,6 +61,16 @@ function MapRevalidator({ interactive }: { interactive: boolean }) {
     }, 500);
     return () => clearTimeout(timer);
   }, [interactive, map]);
+
+  return null;
+}
+
+function MapCenterUpdater({ center }: { center: MapCenter }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom(), { animate: true });
+  }, [center, map]);
 
   return null;
 }
@@ -87,6 +100,21 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
   const [profileData, setProfileData] = useState<PublicProfileData | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [mapCenter, setMapCenter] = useState<MapCenter>(DEFAULT_CENTER);
+
+  useEffect(() => {
+    if (!interactive || typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setMapCenter([position.coords.latitude, position.coords.longitude]);
+      },
+      () => {
+        // keep default center if location is not available or denied
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+    );
+  }, [interactive]);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -198,7 +226,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
   return (
     <div className="relative h-full w-full">
       <MapContainer 
-        center={[44.7866, 20.4489]} 
+        center={mapCenter} 
         zoom={13} 
         style={{ height: "100%", width: "100%" }}
         dragging={true} 
@@ -220,6 +248,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         )}
       
       <MapRevalidator interactive={interactive} />
+      <MapCenterUpdater center={mapCenter} />
       
       {interactive && !profileOpen && <MapEvents onMapClick={onMapClick} />}
 
@@ -238,6 +267,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
         const isPast = startMs < now;
         const isOlderThanWeek = now - startMs > sevenDaysMs;
         if (isOlderThanWeek) return null;
+        const isOrganizer = !!currentUser && trka.organizatorId === currentUser.id;
 
         const userParticipationStatus = trka.mojStatusPrijave as 'NA_CEKANJU' | 'PRIHVACENO' | 'ODBIJENO' | null;
 
@@ -249,6 +279,15 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
               className: isDarkMode
                 ? 'bg-slate-700 text-slate-300 border border-slate-500/80 cursor-not-allowed'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            };
+          }
+          if (isOrganizer) {
+            return {
+              label: 'Ti si organizator',
+              disabled: true,
+              className: isDarkMode
+                ? 'bg-slate-700/80 text-slate-100 border border-slate-500/80 cursor-not-allowed'
+                : 'bg-slate-200 text-slate-800 border border-slate-300 cursor-not-allowed'
             };
           }
           if (!userParticipationStatus) {
@@ -293,8 +332,8 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
           position={[trka.lokacijaLat, trka.lokacijaLng]}
           icon={isPast ? finishIcon : raceIcon}
         >
-          <Popup maxWidth={420} minWidth={320} className="race-popup">
-            <div className="glass-popup w-[320px] max-w-[78vw]">
+          <Popup maxWidth={320} minWidth={250} className="race-popup">
+            <div className="glass-popup w-[272px] max-w-[72vw] font-mono">
               <RacePreviewCard
                 naziv={trka.naziv}
                 vremePocetka={trka.vremePocetka}
@@ -312,6 +351,7 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 status={trka.status}
                 tezina={trka.tezina}
                 compact
+                stackMeta
                 theme={isDarkMode ? 'dark' : 'light'}
                 className="bg-transparent p-0 text-left shadow-none"
               />
@@ -357,8 +397,10 @@ export default function Map({ trke = [], onMapClick, interactive = true, draftLo
                 e.stopPropagation();
                 setProfileOpen(false);
               }}
-              className={`absolute top-3 right-3 ${
-                isDarkMode ? 'text-slate-300 hover:text-white' : 'text-gray-500 hover:text-gray-800'
+              className={`absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                isDarkMode
+                  ? 'border-white/20 bg-white/10 text-slate-300 hover:border-white/40 hover:bg-white/20 hover:text-white'
+                  : 'border-slate-300 bg-white/80 text-gray-500 hover:border-slate-400 hover:bg-white hover:text-gray-800'
               }`}
               aria-label="Zatvori"
             >
