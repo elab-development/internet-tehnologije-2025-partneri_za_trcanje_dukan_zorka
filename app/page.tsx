@@ -7,6 +7,7 @@ import Button from './components/Button';
 import BlurText from './components/BlurText';
 import dynamic from 'next/dynamic';
 import { withCsrfHeader } from '@/lib/csrf-client';
+import Link from 'next/link';
 
 const Map = dynamic(() => import('./components/Map'), { 
   ssr: false,
@@ -413,13 +414,7 @@ export default function Home() {
 
         <div className={`relative h-full transition-all duration-500 ${isLoggedIn ? 'w-full' : 'w-full md:w-2/3'}`}>
           {!isLoggedIn && (
-            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-6">
-              <div className="glass-card max-w-md text-center">
-                <h3 className="text-lg font-bold">🔒 Prijavi se za mapu</h3>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">
-                  Ne želiš da propustiš ova dešavanja.  <br />Uloguj se za potpunu interakciju.
-                </p>
-              </div>
+            <div className="pointer-events-none absolute inset-0 z-30 bg-slate-900/25 backdrop-blur-[2px]">
             </div>
           )}
 
@@ -435,7 +430,7 @@ export default function Home() {
 
           {isLoggedIn && (
             <>
-              <div className="absolute top-4 left-4 z-20 hidden md:flex flex-col gap-3 max-w-xs">
+              <div className="absolute top-4 left-4 z-20 hidden md:flex max-w-xs flex-col gap-3">
                 <div className="glass-card p-4 animate-fade-in-up">
                   {filtersContent}
                 </div>
@@ -447,12 +442,18 @@ export default function Home() {
                 <div className="glass-pill w-fit">Klikni na mapu da dodaš trku</div>
               </div>
 
-              <div className="absolute top-4 left-4 z-20 md:hidden">
+              <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 md:hidden">
+                <Link href="/organizatori" className="glass-pill shadow-lg">
+                  Organizatori
+                </Link>
+                <Link href="/profile" className="glass-pill shadow-lg">
+                  Profil
+                </Link>
                 <button
                   onClick={() => setShowFilters(true)}
                   className="glass-pill shadow-lg"
                 >
-                  🔍 Filteri
+                  Filteri
                 </button>
               </div>
 

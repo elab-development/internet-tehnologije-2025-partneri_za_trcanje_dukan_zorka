@@ -50,46 +50,48 @@ export default function Login() {
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar />
 
-      <div className="max-w-md mx-auto mt-40 p-8 bg-white rounded-xl shadow-lg border border-gray-100 ">
-        <h1 className="text-3xl font-bold text-center mb-2 text-blue-600">
-          Dobrodošli nazad!
-        </h1>
-        <p className="text-gray-500 text-center mb-8">
-          Prijavi se da vidiš nove trke.
-        </p>
+      <div className="mx-auto w-full max-w-md px-4 pb-8 pt-16 md:pt-24">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-slate-900/70 sm:p-8">
+          <h1 className="mb-2 text-center text-3xl font-bold text-blue-600">
+            Dobrodošli nazad!
+          </h1>
+          <p className="mb-8 text-center text-gray-500 dark:text-slate-300">
+            Prijavi se da vidiš nove trke.
+          </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input 
-            label="Email adresa" 
-            name="email" 
-            type="email"
-            placeholder="petar@email.com" 
-            value={formData.email}
-            onChange={handleChange}
-          />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input 
+              label="Email adresa" 
+              name="email" 
+              type="email"
+              placeholder="petar@email.com" 
+              value={formData.email}
+              onChange={handleChange}
+            />
 
-          <Input 
-            label="Lozinka" 
-            name="lozinka" 
-            type="password" 
-            placeholder="********" 
-            value={formData.lozinka}
-            onChange={handleChange}
-          />
+            <Input 
+              label="Lozinka" 
+              name="lozinka" 
+              type="password" 
+              placeholder="********" 
+              value={formData.lozinka}
+              onChange={handleChange}
+            />
 
-          <Button 
-            label="Prijavi se" 
-            type="submit" 
-            fullWidth={true} 
-          />
-        </form>
+            <Button 
+              label="Prijavi se" 
+              type="submit" 
+              fullWidth={true} 
+            />
+          </form>
 
-        <p className="text-center mt-6 text-gray-600">
-          Nemaš nalog?{' '}
-          <Link href="/register" className="text-blue-600 font-semibold hover:underline">
-            Registruj se besplatno
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-gray-600 dark:text-slate-300">
+            Nemaš nalog?{' '}
+            <Link href="/register" className="font-semibold text-blue-600 hover:underline">
+              Registruj se besplatno
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );
