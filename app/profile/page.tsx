@@ -708,12 +708,14 @@ export default function Profile() {
                         compact
                         minimal
                         rightAction={
-                          <button
-                            onClick={() => handleLeave(ucesce.trka.id)}
-                            className="text-red-500 dark:text-red-300 text-sm hover:underline font-medium"
-                          >
-                            Otkaži
-                          </button>
+                          new Date(ucesce.trka.vremePocetka) >= new Date() ? (
+                            <button
+                              onClick={() => handleLeave(ucesce.trka.id)}
+                              className="text-red-500 dark:text-red-300 text-sm hover:underline font-medium"
+                            >
+                              Otkaži
+                            </button>
+                          ) : undefined
                         }
                         onOpenDetails={() =>
                           setSelectedRaceDetails({
