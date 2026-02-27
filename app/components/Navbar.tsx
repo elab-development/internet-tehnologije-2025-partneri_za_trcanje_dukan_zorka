@@ -143,14 +143,14 @@ export default function Navbar({ currentUser }: NavbarProps) {
           <div className="flex flex-col p-4 gap-4">
             <Link 
               href="/about" 
-              className="text-slate-700 dark:text-slate-200 font-semibold"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-slate-100"
               onClick={() => setIsOpen(false)} 
             >
               O nama
             </Link>
             <Link
               href="/organizatori"
-              className="text-slate-700 dark:text-slate-200 font-semibold"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-slate-100"
               onClick={() => setIsOpen(false)}
             >
               Organizatori
@@ -158,7 +158,7 @@ export default function Navbar({ currentUser }: NavbarProps) {
             {theme && (
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-slate-100"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-slate-100"
                 title={theme === 'dark' ? 'Prebaci na svetlu temu' : 'Prebaci na tamnu temu'}
               >
                 {theme === 'dark' ? 'Light' : 'Dark'}
@@ -168,20 +168,21 @@ export default function Navbar({ currentUser }: NavbarProps) {
             
             {!currentUser && (
               <div className="flex flex-col gap-2">
-                <Link href="/login">
-                  <Button label="Prijavi se" variant="secondary" onClick={() => {}} />
+                <Link href="/login" onClick={() => setIsOpen(false)} className="w-full">
+                  <Button label="Prijavi se" variant="secondary" fullWidth onClick={() => {}} />
                 </Link>
-                <Link href="/register">
-                  <Button label="Registracija" variant="primary" onClick={() => {}} />
+                <Link href="/register" onClick={() => setIsOpen(false)} className="w-full">
+                  <Button label="Registracija" variant="primary" fullWidth onClick={() => {}} />
                 </Link>
               </div>
             )}
             {currentUser && (
               <div className="flex flex-col gap-2">
-                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                <Link href="/profile" onClick={() => setIsOpen(false)} className="w-full">
                   <Button
                     label={`${currentUser.ime ?? "Nalog"}`}
                     variant="secondary"
+                    fullWidth
                     leftSlot={
                       <Image
                         src={userIcon}
@@ -197,6 +198,7 @@ export default function Navbar({ currentUser }: NavbarProps) {
                 <Button
                   label={loggingOut ? 'Odjavljivanje...' : 'Odjavi se'}
                   variant="danger"
+                  fullWidth
                   onClick={handleLogout}
                   disabled={loggingOut}
                 />

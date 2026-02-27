@@ -69,65 +69,67 @@ export default function Register() {
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 dark:text-slate-100">
       <Navbar />
 
-      <div className="max-w-md mx-auto mt-10 p-8  bg-white rounded-xl shadow-lg border border-gray-100">
-        <h1 className="text-3xl font-bold text-center mb-2 text-blue-600">
-          Pridruži se!
-        </h1>
-        <p className="text-gray-500 text-center mb-8">
-          Napravi nalog i pronađi partnera za trčanje.
-        </p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input 
-            label="Ime i Prezime" 
-            name="ime" 
-            placeholder="Petar Petrović" 
-            value={formData.ime}
-            onChange={handleChange}
-          />
-
-          <Input 
-            label="Email adresa" 
-            name="email" 
-            type="email"
-            placeholder="petar@email.com" 
-            value={formData.email}
-            onChange={handleChange}
-          />
-
-          <Input 
-            label="Lozinka" 
-            name="lozinka" 
-            type="password" 
-            placeholder="********" 
-            value={formData.lozinka}
-            onChange={handleChange}
-          />
-
-          <Input 
-            label="Potvrdi lozinku" 
-            name="potvrdaLozinke" 
-            type="password" 
-            placeholder="********" 
-            value={formData.potvrdaLozinke}
-            onChange={handleChange}
-          />
-
-          <div className="pt-4">
-            <Button 
-              label="Registruj se" 
-              type="submit" 
-              fullWidth={true} 
+      <div className="mx-auto w-full max-w-md px-4 pb-8 pt-10 md:pt-14">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-slate-900/70 sm:p-8">
+          <h1 className="mb-2 text-center text-3xl font-bold text-blue-600">
+            Pridruži se!
+          </h1>
+          <p className="mb-8 text-center text-gray-500 dark:text-slate-300">
+            Napravi nalog i pronađi partnera za trčanje.
+          </p>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input 
+              label="Ime i Prezime" 
+              name="ime" 
+              placeholder="Petar Petrović" 
+              value={formData.ime}
+              onChange={handleChange}
             />
-          </div>
-        </form>
 
-        <p className="text-center mt-6 text-gray-600">
-          Već imaš nalog?{' '}
-          <Link href="/login" className="text-blue-600 font-semibold hover:underline">
-            Prijavi se ovde
-          </Link>
-        </p>
+            <Input 
+              label="Email adresa" 
+              name="email" 
+              type="email"
+              placeholder="petar@email.com" 
+              value={formData.email}
+              onChange={handleChange}
+            />
+
+            <Input 
+              label="Lozinka" 
+              name="lozinka" 
+              type="password" 
+              placeholder="********" 
+              value={formData.lozinka}
+              onChange={handleChange}
+            />
+
+            <Input 
+              label="Potvrdi lozinku" 
+              name="potvrdaLozinke" 
+              type="password" 
+              placeholder="********" 
+              value={formData.potvrdaLozinke}
+              onChange={handleChange}
+            />
+
+            <div className="pt-4">
+              <Button 
+                label="Registruj se" 
+                type="submit" 
+                fullWidth={true} 
+              />
+            </div>
+          </form>
+
+          <p className="mt-6 text-center text-gray-600 dark:text-slate-300">
+            Već imaš nalog?{' '}
+            <Link href="/login" className="font-semibold text-blue-600 hover:underline">
+              Prijavi se ovde
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );
